@@ -1,0 +1,206 @@
+:root {
+    --bg-app: var(--tg-theme-bg-color, #f4f6f9);
+    --bg-card: var(--tg-theme-secondary-bg-color, #ffffff);
+    --text-main: var(--tg-theme-text-color, #232b38);
+    --text-muted: #7a8b9e;
+    --color-blue: var(--tg-theme-button-color, #248ece);
+    --color-text-btn: var(--tg-theme-button-text-color, #ffffff);
+    --color-orange: #e06d16;
+    --color-gray: #b9c4cf;
+    --color-border-balance: #3f8f83;
+    --bg-balance: #d9edea;
+}
+
+/* Đồng bộ Dark Mode mặc định của hệ thống */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-balance: #1c2e2c;
+    }
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-app);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 480px;
+    padding: 16px 16px 90px 16px; /* Cách đáy để không đè tiêu đề nav */
+    position: relative;
+}
+
+/* Header */
+.header {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+}
+
+/* Thẻ Card */
+.card {
+    background-color: var(--bg-card);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.card h3 {
+    font-size: 13px;
+    color: var(--text-main);
+    margin-bottom: 14px;
+    font-weight: 700;
+}
+
+/* Danh sách thông tin */
+.info-list {
+    list-style: none;
+}
+
+.info-list li {
+    font-size: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.info-list li:last-child {
+    margin-bottom: 0;
+}
+
+.bullet {
+    color: #8c9ba5;
+    margin-right: 8px;
+}
+
+.val {
+    font-weight: 500;
+    margin-left: 4px;
+}
+
+.time-stopped {
+    color: #7d8a97;
+}
+
+/* Nút Bấm chuẩn Form của ảnh mẫu */
+button {
+    width: 100%;
+    border: none;
+    padding: 14px;
+    font-size: 13px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: filter 0.1s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+button:active {
+    filter: brightness(0.9);
+}
+
+.btn-primary {
+    background-color: var(--color-blue);
+    color: var(--color-text-btn);
+    margin-top: 10px;
+}
+
+.btn-orange {
+    background-color: var(--color-orange);
+    color: #ffffff;
+    margin-bottom: 12px;
+}
+
+.btn-gray {
+    background-color: var(--color-gray);
+    color: var(--text-main);
+}
+
+/* Hộp thông số góc dưới */
+.balance-box {
+    background-color: var(--bg-balance);
+    border: 1.5px solid var(--color-border-balance);
+    color: var(--text-main);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.progress-box {
+    text-align: center;
+    color: var(--text-main);
+    font-size: 13px;
+    margin-top: 25px;
+}
+
+/* Tab điều khiển hiển thị */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Bottom Navigation Bar */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    height: 65px;
+    background-color: var(--bg-card);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 999;
+    padding-bottom: env(safe-area-inset-bottom); /* Fix cho tai thỏ iPhone */
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #8c9ca9;
+    cursor: pointer;
+    flex: 1;
+    height: 100%;
+}
+
+.nav-item .icon {
+    font-size: 20px;
+    margin-bottom: 2px;
+}
+
+.nav-item .label {
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.nav-item.active {
+    color: var(--color-blue);
+}

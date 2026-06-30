@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot Đào Xu Mini App</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div id="tab-home" class="tab-content active">
+            <div class="header">⚡ BOT ĐÀO XU MINI APP</div>
+            
+            <div class="card">
+                <h3>👤 THÔNG TIN TÀI KHOẢN</h3>
+                <ul class="info-list">
+                    <li><span class="bullet">➖</span> Tên: <span id="user-name" class="val">@ttdung3864</span></li>
+                    <li><span class="bullet">➖</span> Cấp độ: <span id="user-level" class="val">Lv 20</span></li>
+                    <li><span class="bullet">➖</span> EXP: <span id="user-exp" class="val">MAX LEVEL</span></li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>⛏ MÁY ĐÀO XU</h3>
+                <ul class="info-list">
+                    <li><span class="bullet">➖</span> Tốc độ: <span id="mining-speed" class="val">117,435 Xu/giờ</span></li>
+                    <li><span class="bullet">➖</span> Thời gian còn lại: <span id="mining-time" class="val time-stopped">00:00:00 (Đang dừng)</span></li>
+                </ul>
+                <button id="btn-activate-mining" class="btn-primary">🎁 KÍCH HOẠT ĐÀO FREE (4H)</button>
+            </div>
+
+            <div class="balance-box">
+                💰 SỐ DƯ: <span id="xu-balance">1,250,000</span> Xu (~<span id="vnd-balance">12,500</span> VNĐ)
+            </div>
+        </div>
+
+        <div id="tab-tasks" class="tab-content">
+            <div class="header">🎮 NHIỆM VỤ KIẾM XU</div>
+            
+            <div class="card">
+                <h3>🎮 NHIỆM VỤ & KIẾM THÊM</h3>
+                
+                <button id="btn-watch-ad" class="btn-orange">📺 XEM QUẢNG CÁO (+Xu Thưởng)</button>
+                <button id="btn-list-tasks" class="btn-gray">🔗 DANH SÁCH 10 NHIỆM VỤ VƯỢT LINK</button>
+            </div>
+
+            <div class="progress-box">
+                📊 Tiến độ nhiệm vụ hôm nay: <span id="task-progress">0/10</span>
+            </div>
+        </div>
+
+        <div id="tab-withdraw" class="tab-content">
+            <div class="header">💸 RÚT TIỀN</div>
+            <div class="card" style="text-align: center; padding: 40px 20px;">
+                <p>Tính năng rút tiền được thực hiện trực tiếp an toàn qua khung chat của Bot Telegram.</p>
+                <p>Vui lòng quay lại khung chat và bấm nút <b>💸 Rút Tiền</b> nhé ông!</p>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchTab('tab-home')">
+                <span class="icon">🏠</span>
+                <span class="label">Trang Chủ</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('tab-tasks')">
+                <span class="icon">🎮</span>
+                <span class="label">Nhiệm Vụ</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('tab-withdraw')">
+                <span class="icon">💸</span>
+                <span class="label">Rút Tiền</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
