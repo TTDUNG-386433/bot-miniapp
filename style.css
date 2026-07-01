@@ -1,20 +1,67 @@
-:root {
-    --bg-app: var(--tg-theme-bg-color, #f4f6f9);
-    --bg-card: var(--tg-theme-secondary-bg-color, #ffffff);
-    --text-main: var(--tg-theme-text-color, #232b38);
-    --text-muted: #7a8b9e;
-    --color-blue: var(--tg-theme-button-color, #248ece);
-    --color-text-btn: var(--tg-theme-button-text-color, #ffffff);
-    --color-orange: #e06d16;
-    --color-gray: #b9c4cf;
-    --color-border-balance: #3f8f83;
-    --bg-balance: #d9edea;
+/* Thêm Google Font Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg-gradient);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    overflow-x: hidden;
+    line-height: 1.5; /* Giãn dòng để chữ dễ đọc hơn */
 }
 
-/* Đồng bộ Dark Mode mặc định của hệ thống */
-@media (prefers-color-scheme: dark) {
+/* Tăng nhẹ size chữ ở các thẻ card để sáng sủa hơn */
+.card h3 {
+    font-size: 14px; /* Tăng từ 13px lên 14px */
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-list li {
+    font-size: 15px; /* Giữ nguyên nhưng nhờ font Inter sẽ to và tròn hơn */
+    margin-bottom: 12px; 
+    padding-bottom: 12px; 
+}
+
+:root {
+    --bg-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    --card-glass: rgba(30, 41, 59, 0.7);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --color-blue: #38bdf8;
+    --color-blue-glow: rgba(56, 189, 248, 0.3);
+    --color-orange: #f97316;
+    --color-orange-glow: rgba(249, 115, 22, 0.4);
+    --color-gray: #475569;
+    --color-mint: #34d399;
+    --bg-balance: rgba(20, 184, 166, 0.15);
+    --border-balance: rgba(20, 184, 166, 0.4);
+    
+    /* Màu mới bổ sung */
+    --color-purple: #a855f7;
+    --color-gold: #eab308;
+}
+
+@media (prefers-color-scheme: light) {
     :root {
-        --bg-balance: #1c2e2c;
+        --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        --card-glass: rgba(255, 255, 255, 0.85);
+        --card-border: rgba(15, 23, 42, 0.08);
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --color-blue: #0284c7;
+        --color-blue-glow: rgba(2, 132, 199, 0.2);
+        --color-gray: #cbd5e1;
+        --bg-balance: rgba(13, 148, 136, 0.1);
+        --border-balance: rgba(13, 148, 136, 0.3);
     }
 }
 
@@ -23,143 +70,224 @@
     margin: 0;
     padding: 0;
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--bg-app);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg-gradient);
     color: var(--text-main);
+    min-height: 100vh;
     display: flex;
     justify-content: center;
-    min-height: 100vh;
+    overflow-x: hidden;
 }
 
 .app-container {
     width: 100%;
-    max-width: 480px;
-    padding: 16px 16px 90px 16px; /* Cách đáy để không đè tiêu đề nav */
+    max-width: 520px; /* Tăng từ 480px lên 520px cho rộng rãi hơn */
+    padding: 24px 20px 95px 20px; 
     position: relative;
 }
 
 /* Header */
 .header {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 20px;
+    font-size: 17px;
+    font-weight: 800;
+    margin-bottom: 24px;
     display: flex;
     align-items: center;
-    gap: 6px;
-    text-transform: uppercase;
+    gap: 10px;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.header i {
+    color: var(--color-blue);
+    animation: pulse 2s infinite;
 }
 
-/* Thẻ Card */
+/* Glassmorphism Card */
 .card {
-    background-color: var(--bg-card);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    background: var(--card-glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 22px; /* Bo góc mềm hơn chút nữa */
+    padding: 28px 24px; /* Tăng lề trong (padding) để chữ không bị sát viền */
+    margin-bottom: 24px; 
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+    transform: translateY(0);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card h3 {
     font-size: 13px;
-    color: var(--text-main);
-    margin-bottom: 14px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
     font-weight: 700;
+    letter-spacing: 0.8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.card h3 i {
+    color: var(--color-blue);
 }
 
-/* Danh sách thông tin */
+/* Info List */
 .info-list {
     list-style: none;
 }
 
 .info-list li {
-    font-size: 14px;
-    margin-bottom: 10px;
+    font-size: 15px;
+    margin-bottom: 16px; /* Tăng khoảng cách dòng */
     display: flex;
+    justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    padding-bottom: 16px; /* Tăng khoảng trống dưới viền */
+    padding-top: 4px;
 }
 
 .info-list li:last-child {
     margin-bottom: 0;
+    border: none;
+    padding-bottom: 0;
 }
 
-.bullet {
-    color: #8c9ba5;
-    margin-right: 8px;
+.label-text {
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .val {
-    font-weight: 500;
-    margin-left: 4px;
+    font-weight: 600;
+    color: var(--text-main);
 }
 
-.time-stopped {
-    color: #7d8a97;
+/* Chia nút dạng 2 cột Grid */
+.grid-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
 }
 
-/* Nút Bấm chuẩn Form của ảnh mẫu */
+/* Buttons */
 button {
     width: 100%;
     border: none;
-    padding: 14px;
-    font-size: 13px;
-    font-weight: bold;
-    border-radius: 8px;
+    padding: 16px; /* Tăng độ dày của nút */
+    font-size: 14px; /* Chữ to lên xíu */
+    font-weight: 700;
+    border-radius: 14px; /* Bo góc nút lớn hơn */
     cursor: pointer;
-    transition: filter 0.1s ease;
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 button:active {
+    transform: scale(0.96);
     filter: brightness(0.9);
 }
 
+.btn-pink {
+    background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(236, 72, 153, 0.3);
+} 
+
 .btn-primary {
-    background-color: var(--color-blue);
-    color: var(--color-text-btn);
-    margin-top: 10px;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px var(--color-blue-glow);
 }
 
 .btn-orange {
-    background-color: var(--color-orange);
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
     color: #ffffff;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 14px var(--color-orange-glow);
 }
 
 .btn-gray {
-    background-color: var(--color-gray);
-    color: var(--text-main);
+    background: var(--color-gray);
+    color: #ffffff;
 }
 
-/* Hộp thông số góc dưới */
-.balance-box {
-    background-color: var(--bg-balance);
-    border: 1.5px solid var(--color-border-balance);
-    color: var(--text-main);
-    border-radius: 8px;
-    padding: 14px;
-    text-align: center;
-    font-size: 14px;
-    font-weight: bold;
+.btn-purple {
+    background: linear-gradient(135deg, #a855f7 0%, #89123e 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(168, 85, 247, 0.3);
 }
 
-.progress-box {
+.btn-gold {
+    background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(234, 179, 8, 0.3);
+}
+
+.btn-mint {
+    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+}
+
+/* Khung căn chỉnh tiến độ inline */
+.progress-box-inline {
     text-align: center;
-    color: var(--text-main);
+    color: var(--text-muted);
     font-size: 13px;
-    margin-top: 25px;
+    margin-top: 14px;
 }
 
-/* Tab điều khiển hiển thị */
+/* Balance Box */
+.balance-box {
+    background: var(--bg-balance);
+    border: 1.5px solid var(--border-balance);
+    color: var(--text-main);
+    border-radius: 16px; /* Bo góc to hơn */
+    padding: 20px; /* Tăng đệm xung quanh chữ */
+    text-align: center;
+    font-size: 16px; /* Chữ to hơn */
+    font-weight: 800;
+    box-shadow: 0 4px 16px rgba(20, 184, 166, 0.05);
+    animation: pulseGlow 3s infinite;
+}
+
+.balance-box span {
+    color: #34d399;
+    font-size: 17px;
+}
+
+/* Tab Switching Control */
+/* Thay thế đoạn .tab-content cũ bằng đoạn này */
 .tab-content {
     display: none;
 }
 
+/* Khi có class active, tab sẽ kích hoạt animation mượt mà từ dưới lên */
 .tab-content.active {
     display: block;
+    animation: fadeAndSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeAndSlideUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(15px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
 }
 
 /* Bottom Navigation Bar */
@@ -170,14 +298,16 @@ button:active {
     transform: translateX(-50%);
     width: 100%;
     max-width: 480px;
-    height: 65px;
-    background-color: var(--bg-card);
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    height: 70px;
+    background: var(--card-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--card-border);
     display: flex;
     justify-content: space-around;
     align-items: center;
     z-index: 999;
-    padding-bottom: env(safe-area-inset-bottom); /* Fix cho tai thỏ iPhone */
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .nav-item {
@@ -185,22 +315,394 @@ button:active {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #8c9ca9;
+    color: var(--text-muted);
     cursor: pointer;
-    flex: 1;
+    width: 25%; /* Chia đều 4 nút mỗi nút 25% */
     height: 100%;
+    transition: all 0.2s ease;
 }
 
-.nav-item .icon {
-    font-size: 20px;
-    margin-bottom: 2px;
+.nav-item i {
+    font-size: 18px;
+    margin-bottom: 4px;
+    transition: transform 0.2s ease;
 }
 
 .nav-item .label {
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .nav-item.active {
     color: var(--color-blue);
+    text-shadow: 0 0 10px var(--color-blue-glow);
+}
+.nav-item.active i {
+    transform: translateY(-2px) scale(1.1);
+}
+
+/* Xoay nhẹ icon vòng quay cho sinh động */
+.fa-spin-slow {
+    animation: fa-spin 8s infinite linear;
+}
+
+/* Animations Keyframes */
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+@keyframes pulseGlow {
+    0%, 100% { border-color: var(--border-balance); }
+    50% { border-color: #34d399; box-shadow: 0 4px 25px rgba(52, 211, 153, 0.15); }
+}
+
+/* Giao diện danh sách link nhiệm vụ */
+.task-list-container {
+    margin-top: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Giao diện danh sách link tối giản */
+.task-list-container {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.simple-task-item {
+    margin-bottom: 24px; /* Tạo khoảng trống giữa các cụm Link */
+    text-align: left;
+    padding: 0 10px;
+}
+
+.simple-task-text {
+    font-size: 15px;
+    color: var(--text-main);
+    margin-bottom: 6px; /* Khoảng cách giữa dòng Link và dòng Trạng thái */
+    word-break: break-all;
+    font-family: inherit;
+    line-height: 1.4;
+}
+
+.status-pending { color: var(--color-orange); }
+.status-completed { color: var(--color-mint); }
+
+/* Giao diện danh sách link tối giản */
+.task-list-container {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.simple-task-item {
+    margin-bottom: 20px; 
+    text-align: left;
+    padding: 0 5px;
+}
+
+.simple-task-text {
+    font-size: 14px;
+    color: var(--text-main);
+    margin-bottom: 8px; 
+    word-break: break-all;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+/* Màu trạng thái */
+.status-pending { color: var(--color-orange); font-weight: 600; }
+.status-completed { color: var(--color-mint); font-weight: 600; }
+
+/* ================= VÒNG QUAY MAY MẮN ================= */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(8px);
+}
+.modal-content {
+    background: var(--card-glass);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 30px 20px;
+    width: 90%;
+    max-width: 380px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+.close-btn {
+    position: absolute;
+    top: 15px; right: 15px;
+    background: none; border: none; box-shadow: none;
+    color: var(--text-muted); font-size: 24px;
+    width: auto; padding: 0; cursor: pointer;
+}
+.wheel-container {
+    position: relative;
+    width: 280px; height: 280px;
+    margin: 0 auto;
+}
+.wheel-pointer {
+    position: absolute;
+    top: -20px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 45px;
+    color: #ef4444;
+    z-index: 10;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+}
+/* Đảm bảo copy đè cả 3 class này để đồng bộ trục quay */
+.wheel {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    border: 5px solid var(--color-gold);
+    /* Giữ nguyên 10 màu nền chuẩn */
+    background: conic-gradient(
+        #f87171 0deg 36deg,
+        #60a5fa 36deg 72deg,
+        #34d399 72deg 108deg,
+        #fbbf24 108deg 144deg,
+        #a78bfa 144deg 180deg,
+        #f87171 180deg 216deg,
+        #60a5fa 216deg 252deg,
+        #34d399 252deg 288deg,
+        #fbbf24 288deg 324deg,
+        #a78bfa 324deg 360deg
+    );
+    position: relative;
+    transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+    box-shadow: 0 0 25px rgba(234, 179, 8, 0.4);
+}
+
+.wheel-inner {
+    position: absolute;
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    /* BẮT BUỘC PHẢI CÓ DÒNG NÀY để xoay trục chữ về khớp với JS */
+    transform: rotate(-90deg); 
+}
+
+.prize {
+    position: absolute;
+    width: 50%; height: 20px;
+    top: 50%; left: 50%;
+    transform-origin: 0% 50%;
+    font-size: 13px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* Đẩy chữ ra ngoài viền */
+    padding-right: 25px; /* Cách viền 1 khoảng cho đẹp */
+}
+/* Xoay chữ cho khớp 10 ô */
+.p1 { transform: translateY(-50%) rotate(18deg); }
+.p2 { transform: translateY(-50%) rotate(54deg); }
+.p3 { transform: translateY(-50%) rotate(90deg); }
+.p4 { transform: translateY(-50%) rotate(126deg); }
+.p5 { transform: translateY(-50%) rotate(162deg); }
+.p6 { transform: translateY(-50%) rotate(198deg); }
+.p7 { transform: translateY(-50%) rotate(234deg); }
+.p8 { transform: translateY(-50%) rotate(270deg); }
+.p9 { transform: translateY(-50%) rotate(306deg); }
+.p10 { transform: translateY(-50%) rotate(342deg); }
+
+/* Giao diện ô nhập liệu Form Rút Tiền */
+.input-field {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 14px 15px;
+    border-radius: 12px;
+    color: var(--text-main);
+    font-size: 14px;
+    margin-bottom: 12px;
+    outline: none;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.input-field::placeholder {
+    /* Đổi sang màu xám sáng hơn thay vì dùng biến text-muted cũ */
+    color: #cbd5e1; 
+    opacity: 0.9;
+}
+
+.input-field:focus {
+    border-color: var(--color-mint);
+    box-shadow: 0 0 12px rgba(52, 211, 153, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Làm sáng tất cả các nút Quay lại trong ứng dụng */
+button[id^="btn-back-"], .btn-back-wd {
+    color: #ffffff !important; /* Đẩy màu chữ lên trắng sáng nhất */
+    font-weight: 600; /* In đậm chữ một chút để dễ đọc */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Thêm viền mờ để làm nổi bật khối nút */
+}
+
+/* Nút bấm mềm mại hơn */
+button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hiệu ứng khi lướt qua (dành cho Web/PC) */
+button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+/* Hiệu ứng lún xuống mượt mà khi bấm (Mobile) */
+button:active {
+    transform: translateY(2px) scale(0.97);
+    filter: brightness(0.9);
+}
+
+/* Thanh Nav mượt hơn */
+.nav-item {
+    transition: color 0.3s ease;
+}
+
+.nav-item i {
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Hiệu ứng nảy nhẹ (bounce) */
+}
+
+.nav-item.active i {
+    transform: translateY(-4px) scale(1.15);
+}
+
+/* ================= ĐỔ MÀU ICON TRANG CHỦ ================= */
+
+/* Màu cho Icon tiêu đề của các thẻ Card */
+.card h3 i.fa-user-shield { color: #a855f7; } /* Màu Tím cho Bảo mật/Tài khoản */
+.card h3 i.fa-screwdriver-wrench { color: #f97316; } /* Màu Cam cho Máy móc/Cài đặt */
+
+/* Màu cho Icon chi tiết trong mục THÔNG TIN TÀI KHOẢN */
+.info-list i.fa-at { color: #38bdf8; } /* Xanh dương sáng cho Tên */
+.info-list i.fa-medal { color: #eab308; } /* Vàng Gold cho Cấp độ */
+.info-list i.fa-star { color: #facc15; } /* Vàng tươi cho EXP */
+
+/* Màu cho Icon chi tiết trong mục MÁY ĐÀO XU */
+.info-list i.fa-gauge-high { color: #f43f5e; } /* Đỏ hồng cho Tốc độ */
+.info-list i.fa-clock { color: #14b8a6; } /* Xanh ngọc cho Thời gian */
+
+/* Làm nổi bật icon hộp quà trên nút Kích hoạt */
+#btn-activate-mining i.fa-gift {
+    color: #fde047; /* Đổi màu hộp quà sang vàng rực */
+    font-size: 16px;
+    animation: pulse 2s infinite; /* Thêm hiệu ứng nhịp tim cho hộp quà */
+}
+
+/* Đẩy nút Kích hoạt cách xa phần thông tin phía trên ra một chút */
+#btn-activate-mining {
+    margin-top: 50px; 
+}
+
+/* ================= Ô HƯỚNG DẪN TÂN THỦ ================= */
+.guide-box {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 24px;
+    color: var(--text-main);
+    font-size: 13px; /* Kích thước chữ vừa vặn, dễ đọc */
+    line-height: 1.6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.guide-box h4 {
+    color: #38bdf8; /* Xanh dương sáng */
+    font-size: 14px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.guide-box p {
+    margin-bottom: 12px;
+    color: #f8fafc; 
+}
+
+.guide-box ul {
+    list-style: none;
+    padding: 0;
+}
+
+.guide-box ul li {
+    position: relative;
+    padding-left: 24px;
+    margin-bottom: 10px;
+    color: #f8fafc; 
+}
+
+.guide-box ul li:last-child {
+    margin-bottom: 0;
+}
+
+.guide-box ul li i {
+    position: absolute;
+    left: 0;
+    top: 3px;
+    color: #facc15; /* Icon mũi tên màu vàng rực */
+    font-size: 13px;
+}
+
+/* Đổi màu nhấn mạnh cho các từ khóa */
+.guide-box b {
+    color: #34d399; 
+    font-weight: 800;
+}
+
+/* ================= ĐỔ MÀU THANH ĐIỀU HƯỚNG (BOTTOM NAV) ================= */
+
+/* 1. Nút Trang Chủ - Xanh dương (Blue) */
+.bottom-nav .nav-item:nth-child(1) { color: rgba(56, 189, 248, 0.6); }
+.bottom-nav .nav-item:nth-child(1).active {
+    color: #38bdf8;
+    text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+}
+
+/* 2. Nút Nhiệm Vụ - Tím (Purple) */
+.bottom-nav .nav-item:nth-child(2) { color: rgba(168, 85, 247, 0.6); }
+.bottom-nav .nav-item:nth-child(2).active {
+    color: #a855f7;
+    text-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
+}
+
+/* 3. Nút Tiện Ích - Xanh ngọc (Mint) */
+.bottom-nav .nav-item:nth-child(3) { color: rgba(52, 211, 153, 0.6); }
+.bottom-nav .nav-item:nth-child(3).active {
+    color: #34d399;
+    text-shadow: 0 0 12px rgba(52, 211, 153, 0.5);
+}
+
+/* 4. Nút Rút Tiền - Vàng (Gold) */
+.bottom-nav .nav-item:nth-child(4) { color: rgba(234, 179, 8, 0.6); }
+.bottom-nav .nav-item:nth-child(4).active {
+    color: #eab308;
+    text-shadow: 0 0 12px rgba(234, 179, 8, 0.5);
+}
+
+/* Thêm hiệu ứng chuyển màu mượt mà khi bấm */
+.bottom-nav .nav-item {
+    transition: all 0.3s ease;
 }
