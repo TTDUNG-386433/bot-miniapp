@@ -2,6 +2,7 @@ const tg = window.Telegram.WebApp;
 tg.expand();
 
 // 1. Nạp thông tin user
+
 // 1. Nạp thông tin user từ Telegram
 if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
     const user = tg.initDataUnsafe.user;
