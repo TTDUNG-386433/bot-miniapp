@@ -11,6 +11,7 @@ body {
     overflow-x: hidden;
     line-height: 1.5; /* Giãn dòng để chữ dễ đọc hơn */
 }
+
 /* Tăng nhẹ size chữ ở các thẻ card để sáng sủa hơn */
 .card h3 {
     font-size: 14px; /* Tăng từ 13px lên 14px */
