@@ -2,6 +2,7 @@ const tg = window.Telegram.WebApp;
 tg.expand();
 
 // ⚠️ QUAN TRỌNG: Điền địa chỉ IP hoặc Domain VPS chạy bot của ông vào đây
+
 const API_URL = "https://irritant-dwarf-starlit.ngrok-free.dev/api/data";
 const userId = tg.initDataUnsafe?.user?.id || 0; 
 
