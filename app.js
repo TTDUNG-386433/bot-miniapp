@@ -40,7 +40,7 @@ function showToast(message, type = 'success') {
 // ================= HÀM KẾT NỐI API LẤY DATA THẬT =================
 async function loadRealData() {
     if (!userId) {
-        tg.showAlert("Ko lấy đc ID Telegram từ WebApp!");
+        showToast("Ko lấy đc ID Telegram từ WebApp!");
         return;
     }
     
@@ -62,7 +62,7 @@ async function loadRealData() {
         fractionalXu = 0;
         
         // 1. Cập nhật thông tin Tài khoản & Ví tiền thật
-        document.getElementById("user-name").innerText = data.user.username ? `@${data.user.username}` : "Ẩn danh";
+        document.getElementById("user-name").innerText = data.user.username ? data.user.username : "Ẩn danh";
         document.getElementById("user-level").innerText = `Lv ${data.user.level}`;
         document.getElementById("user-exp").innerText = data.user.level >= 20 ? "MAX LEVEL" : `${data.user.exp}/${data.user.exp_required}`;
         document.getElementById("mining-speed").innerText = `${data.user.speed.toLocaleString()} Xu/giờ`;
@@ -222,11 +222,11 @@ if (watchAdBtn) {
                         document.getElementById("user-exp").innerText = `${data.new_exp}/${data.exp_required}`;
                     }
 
-                    tg.showAlert(`🎉 Đỉnh chóp! Ông vừa húp trọn ${data.reward_xu} Xu và ${data.reward_exp} EXP.`);
+                    showToast(`🎉 Đỉnh chóp! Ông vừa húp trọn ${data.reward_xu} Xu và ${data.reward_exp} EXP.`);
                 }
             } catch (err) {
                 console.error("Lỗi API Ads:", err);
-                tg.showAlert("❌ Có lỗi mạng khi cộng thưởng, ông check lại đường truyền nhé!");
+                showToast("❌ Có lỗi mạng khi cộng thưởng, ông check lại đường truyền nhé!");
             }
 
             // Khôi phục nút bấm
@@ -234,7 +234,7 @@ if (watchAdBtn) {
             watchAdBtn.disabled = false;
 
         }).catch((error) => {
-            tg.showAlert("❌ Ông tắt quảng cáo sớm quá nên chưa đc nhận thưởng đâu nha!");
+            showToast("❌ Ông tắt quảng cáo sớm quá nên chưa đc nhận thưởng đâu nha!");
             watchAdBtn.innerHTML = "<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO";
             watchAdBtn.disabled = false;
         });
@@ -246,7 +246,7 @@ const btnActivate = document.getElementById("btn-activate-mining");
 if (btnActivate) {
     btnActivate.addEventListener("click", () => {
         if (!userId) {
-            return tg.showAlert("Ko tìm thấy ID User Telegram!");
+            return showToast("Ko tìm thấy ID User Telegram!");
         }
 
         // Đổi trạng thái sang chờ xem ads
@@ -269,25 +269,25 @@ if (btnActivate) {
                 const data = await response.json();
                 
                 if (data.error) {
-                    tg.showAlert(data.error);
+                    showToast(data.error);
                     // Nếu lỗi (vd: chưa tới ngày mới), trả lại nút
                     btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
                     btnActivate.disabled = false;
                 } else if (data.success) {
-                    tg.showAlert("🎉 Xem quảng cáo thành công! Máy đào đã chạy.");
+                    showToast("🎉 Xem quảng cáo thành công! Máy đào đã chạy.");
                     // Chạy đếm ngược (hàm bên trên sẽ tự động khóa nút và nhảy chữ ĐANG ĐÀO)
                     startMiningTimer(data.new_end_time);
                 }
             } catch (err) {
                 console.error("Lỗi API Kích hoạt:", err);
-                tg.showAlert("❌ Lỗi kết nối đến server máy chủ!");
+                showToast("❌ Lỗi kết nối đến server máy chủ!");
                 btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
                 btnActivate.disabled = false;
             }
 
         }).catch((error) => {
             // Trường hợp user ấn tắt quảng cáo giữa chừng hoặc lỗi load ads
-            tg.showAlert("❌ Ông chưa xem xong quảng cáo hoặc lỗi mạng. Kích hoạt bị hủy!");
+            showToast("❌ Ông chưa xem xong quảng cáo hoặc lỗi mạng. Kích hoạt bị hủy!");
             btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
             btnActivate.disabled = false;
         });
@@ -332,12 +332,12 @@ if (btnSpin) {
         if (isSpinning) return;
 
         if (dailySpins >= MAX_DAILY_SPINS) {
-            tg.showAlert("🛑 Hôm nay ông đã quay hết 5 lần rồi! Hãy quay lại vào ngày mai nhé.");
+            showToast("🛑 Hôm nay ông đã quay hết 5 lần rồi! Hãy quay lại vào ngày mai nhé.");
             return;
         }
 
         if (userLinksCompleted < 1 && userAdsWatched < 3) {
-            tg.showAlert(`⚠️ Chưa đủ điều kiện!\n\nÔng cần vượt thành công 1 Link (đã có: ${userLinksCompleted}) HOẶC xem 3 Quảng Cáo (đã có: ${userAdsWatched}) để đổi 1 lượt quay.`);
+            showToast(`⚠️ Chưa đủ điều kiện!\n\nÔng cần vượt thành công 1 Link (đã có: ${userLinksCompleted}) HOẶC xem 3 Quảng Cáo (đã có: ${userAdsWatched}) để đổi 1 lượt quay.`);
             return;
         }
 
@@ -418,7 +418,7 @@ function renderLeaderboard(leaderboardData) {
 
     leaderboardData.forEach((user) => {
         let rankIcon = user.rank === 1 ? "🥇" : user.rank === 2 ? "🥈" : user.rank === 3 ? "🥉" : `<span style='display: inline-block; width: 20px; text-align: left; color: var(--text-muted); font-weight: bold;'>${user.rank}.</span>`;
-        let displayName = user.name === "Ẩn danh" ? user.name : `@${user.name}`;
+        let displayName = user.name;
 
         const li = document.createElement("li");
         if (user.rank === 10) {
@@ -520,7 +520,7 @@ if (btnBackAttendance) {
 if (btnDoAttendance) {
     btnDoAttendance.addEventListener("click", () => {
         if (hasAttendedToday) {
-            tg.showAlert("Hôm nay bạn đã điểm danh rồi! Hãy quay lại vào ngày mai nhé.");
+            showToast("Hôm nay bạn đã điểm danh rồi! Hãy quay lại vào ngày mai nhé.");
             return;
         }
 
@@ -562,7 +562,7 @@ if (btnDoAttendance) {
                     if(!lvl.includes("20") && !lvl.includes("MAX")) {
                         document.getElementById("user-exp").innerText = `${d.new_exp}/${d.exp_required}`;
                     }
-                    tg.showAlert(`🎉 Điểm danh thành công! Ông nhận được ${d.reward_xu} Xu và ${d.reward_exp} EXP.`);
+                    showToast(`🎉 Điểm danh thành công! Ông nhận được ${d.reward_xu} Xu và ${d.reward_exp} EXP.`);
                 }
             } catch(e) { console.error("Lỗi API Điểm danh:", e); }
             
@@ -656,10 +656,10 @@ if (btnSubmitBank) {
         const fullName = document.getElementById("bank-fullname").value.trim();
 
         if (!amount || amount < 2000 || amount > 10000) {
-            return tg.showAlert("Số tiền rút phải từ 2,000 đến 10,000 VNĐ!");
+            return showToast("Số tiền rút phải từ 2,000 đến 10,000 VNĐ!");
         }
         if (!bankName || !stk || !fullName) {
-            return tg.showAlert("Vui lòng điền đầy đủ thông tin Ngân hàng!");
+            return showToast("Vui lòng điền đầy đủ thông tin Ngân hàng!");
         }
 
         const formatInfo = `${bankName} - ${stk} - ${fullName.toUpperCase()}`;
@@ -684,14 +684,14 @@ if (btnSubmitBank) {
             const data = await res.json();
 
             if (data.error) {
-                tg.showAlert("❌ " + data.error);
+                showToast("❌ " + data.error);
             } else if (data.success) {
                 // Trừ tiền trên giao diện tức thì
                 currentXu = data.new_xu;
                 document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
                 document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
                 
-                tg.showAlert("✅ Lệnh rút đã được gửi! Admin đang xem xét duyệt, ông chú ý check tin nhắn bot nhé.");
+                showToast("✅ Lệnh rút đã được gửi! Admin đang xem xét duyệt, ông chú ý check tin nhắn bot nhé.");
                 
                 // Trả về màn hình chọn phương thức & Xóa trắng form
                 wdFormBank.style.display = "none";
@@ -702,7 +702,7 @@ if (btnSubmitBank) {
                 document.getElementById("bank-fullname").value = "";
             }
         } catch (err) {
-            tg.showAlert("❌ Lỗi kết nối mạng, vui lòng thử lại sau!");
+            showToast("❌ Lỗi kết nối mạng, vui lòng thử lại sau!");
         }
 
         btnSubmitBank.innerHTML = "<i class='fa-solid fa-paper-plane'></i> GỬI LỆNH RÚT";
@@ -718,10 +718,10 @@ if (btnSubmitMomo) {
         const fullName = document.getElementById("momo-fullname").value.trim();
 
         if (!amount || amount < 2000 || amount > 10000) {
-            return tg.showAlert("Số tiền rút phải từ 2,000 đến 10,000 VNĐ!");
+            return showToast("Số tiền rút phải từ 2,000 đến 10,000 VNĐ!");
         }
         if (!phone || !fullName) {
-            return tg.showAlert("Vui lòng điền đầy đủ số điện thoại và tên!");
+            return showToast("Vui lòng điền đầy đủ số điện thoại và tên!");
         }
 
         const formatInfo = `${phone} - ${fullName.toUpperCase()}`;
@@ -746,13 +746,13 @@ if (btnSubmitMomo) {
             const data = await res.json();
 
             if (data.error) {
-                tg.showAlert("❌ " + data.error);
+                showToast("❌ " + data.error);
             } else if (data.success) {
                 currentXu = data.new_xu;
                 document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
                 document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
                 
-                tg.showAlert("✅ Lệnh rút đã được gửi! Admin đang xem xét duyệt, ông chú ý check tin nhắn bot nhé.");
+                showToast("✅ Lệnh rút đã được gửi! Admin đang xem xét duyệt, ông chú ý check tin nhắn bot nhé.");
                 
                 wdFormMomo.style.display = "none";
                 wdMethodContainer.style.display = "block";
@@ -761,7 +761,7 @@ if (btnSubmitMomo) {
                 document.getElementById("momo-fullname").value = "";
             }
         } catch (err) {
-            tg.showAlert("❌ Lỗi kết nối mạng, vui lòng thử lại sau!");
+            showToast("❌ Lỗi kết nối mạng, vui lòng thử lại sau!");
         }
 
         btnSubmitMomo.innerHTML = "<i class='fa-solid fa-paper-plane'></i> GỬI LỆNH RÚT";
@@ -793,7 +793,7 @@ async function syncData() {
         });
 
         if (newlyCompleted > 0) {
-            tg.showAlert(`🎉 Đỉnh quá! Ông vừa vượt thành công ${newlyCompleted} Link. Phần thưởng Xu và EXP đã được cộng vào ví!`);
+            showToast(`🎉 Đỉnh quá! Ông vừa vượt thành công ${newlyCompleted} Link. Phần thưởng Xu và EXP đã được cộng vào ví!`);
             
             currentXu = data.user.xu;
             document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
