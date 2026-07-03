@@ -117,6 +117,48 @@ async function loadRealData() {
             currentTasksState[t.id] = t.completed;
         });
         renderTaskList(data.tasks);
+
+        // 6. Đổ dữ liệu điểm danh và tiến độ tuần
+        if (data.attendance_status) {
+            let attendedCount = 0;
+            // Map từ Python (0=T2, 6=CN) sang HTML data-day (1=T2, 0=CN)
+            const daysMap = [1, 2, 3, 4, 5, 6, 0]; 
+            
+            data.attendance_status.forEach((isAttended, index) => {
+                if (isAttended) {
+                    attendedCount++;
+                    const dayLi = document.querySelector(`#attendance-list li[data-day="${daysMap[index]}"]`);
+                    if (dayLi) {
+                        const statusIcon = dayLi.querySelector(".status-icon");
+                        if (statusIcon) statusIcon.innerHTML = "<i class='fa-solid fa-circle-check' style='color: var(--color-mint); margin-left: 8px; font-size: 16px;'></i>";
+                        dayLi.style.background = "rgba(52, 211, 153, 0.1)";
+                        dayLi.style.borderRadius = "8px";
+                        dayLi.style.padding = "8px";
+                        dayLi.style.borderBottom = "none";
+                    }
+                }
+            });
+            
+            const progressEl = document.getElementById("attendance-progress");
+            if (progressEl) progressEl.innerText = `${data.streak}/7`;
+
+            const btnWeekly = document.getElementById("btn-claim-weekly");
+            if (btnWeekly) {
+                if (data.weekly_claimed) {
+                    btnWeekly.innerHTML = "<i class='fa-solid fa-check-double'></i> ĐÃ NHẬN THƯỞNG";
+                    btnWeekly.className = "btn-gray";
+                    btnWeekly.disabled = true;
+                } else if (data.streak >= 7) {
+                    btnWeekly.innerHTML = "<i class='fa-solid fa-unlock fa-bounce'></i> NHẬN RƯƠNG THƯỞNG";
+                    btnWeekly.className = "btn-mint";
+                    btnWeekly.disabled = false; 
+                } else {
+                    btnWeekly.innerHTML = "<i class='fa-solid fa-lock'></i> CHƯA ĐỦ ĐIỀU KIỆN";
+                    btnWeekly.className = "btn-gray";
+                    btnWeekly.disabled = true;
+                }
+            }
+        }
         
     } catch (err) {
         console.error("Lỗi khi kết nối API Server:", err);
@@ -134,7 +176,7 @@ function startMiningTimer(endTimeStr) {
         
         // Mở khóa lại nút kích hoạt
         if (btnActivate) {
-            btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
+            btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO";
             btnActivate.disabled = false;
             btnActivate.style.opacity = "1";
             btnActivate.classList.remove("btn-gray"); // Bỏ màu xám (nếu có)
@@ -547,6 +589,7 @@ if (btnShareLink) {
 }
 
 // ================= LOGIC ĐIỂM DANH HÀNG NGÀY =================
+// ================= LOGIC ĐIỂM DANH HÀNG NGÀY =================
 const btnDailyAttendance = document.getElementById("btn-daily-attendance");
 const inlineAttendanceContainer = document.getElementById("inline-attendance-container");
 const btnBackAttendance = document.getElementById("btn-back-attendance");
@@ -570,31 +613,59 @@ if (btnBackAttendance) {
 
 if (btnDoAttendance) {
     btnDoAttendance.addEventListener("click", () => {
+
+        if(d.success) {
+                    hasAttendedToday = true;
+                    btnDoAttendance.innerHTML = "<i class='fa-solid fa-check'></i> ĐÃ ĐIỂM DANH";
+                    btnDoAttendance.style.opacity = "0.7";
+                    
+                    // Cập nhật lại UI cho thẻ ngày hôm nay
+                    const todayDay = new Date().getDay(); 
+                    const currentDayLi = document.querySelector(`#attendance-list li[data-day="${todayDay}"]`);
+                    if (currentDayLi) {
+                        const statusIcon = currentDayLi.querySelector(".status-icon");
+                        if (statusIcon) statusIcon.innerHTML = "<i class='fa-solid fa-circle-check' style='color: var(--color-mint); margin-left: 8px; font-size: 16px;'></i>";
+                        currentDayLi.style.background = "rgba(52, 211, 153, 0.1)";
+                        currentDayLi.style.borderRadius = "8px";
+                        currentDayLi.style.padding = "8px";
+                        currentDayLi.style.borderBottom = "none";
+                    }
+
+                    // Cập nhật tiến độ
+                    const progressEl = document.getElementById("attendance-progress");
+                    if (progressEl) progressEl.innerText = `${d.streak}/7`;
+
+                    currentXu = d.new_xu;
+                    document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
+                    document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
+                    
+                    const lvl = document.getElementById("user-level").innerText;
+                    if(!lvl.includes("20") && !lvl.includes("MAX")) {
+                        document.getElementById("user-exp").innerText = `${d.new_exp}/${d.exp_required}`;
+                    }
+                    
+                    // Thông báo thưởng cực gắt nếu đủ chuỗi 7 ngày
+                    if (d.is_weekly) {
+                        showToast(`🎉 ĐỈNH CHÓP! Điểm danh đủ 7 ngày. Húp trọn ${d.reward_xu.toLocaleString()} Xu & ${d.reward_exp} EXP!`);
+                    } else {
+                        showToast(`🎉 Điểm danh thành công! Ông nhận đc ${d.reward_xu} Xu & ${d.reward_exp} EXP.`);
+                    }
+                }
+
         if (hasAttendedToday) {
             showToast("Hôm nay bạn đã điểm danh rồi! Hãy quay lại vào ngày mai nhé.");
             return;
         }
 
-        btnDoAttendance.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG XỬ LÝ...";
+        // 1. Đổi nút thành trạng thái tải quảng cáo
+        btnDoAttendance.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnDoAttendance.disabled = true;
 
-        setTimeout(async () => {
-            hasAttendedToday = true;
-            btnDoAttendance.innerHTML = "<i class='fa-solid fa-check'></i> ĐÃ ĐIỂM DANH";
-            btnDoAttendance.style.opacity = "0.7";
+        // 2. Gọi quảng cáo Adsgram
+        AdController.show().then(async (result) => {
+            // Xem xong quảng cáo thì bắt đầu gọi API điểm danh
+            btnDoAttendance.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG ĐIỂM DANH...";
             
-            const today = new Date().getDay(); 
-            const currentDayLi = document.querySelector(`#attendance-list li[data-day="${today}"]`);
-            if (currentDayLi) {
-                const statusIcon = currentDayLi.querySelector(".status-icon");
-                if (statusIcon) statusIcon.innerHTML = "<i class='fa-solid fa-circle-check' style='color: var(--color-mint); margin-left: 8px; font-size: 16px;'></i>";
-                currentDayLi.style.background = "rgba(52, 211, 153, 0.1)";
-                currentDayLi.style.borderRadius = "8px";
-                currentDayLi.style.padding = "8px";
-                currentDayLi.style.borderBottom = "none";
-            }
-
-            // Gọi API Điểm danh
             try {
                 const attUrl = API_URL.replace('/api/data', '/api/attendance');
                 const res = await fetch(attUrl, {
@@ -605,6 +676,22 @@ if (btnDoAttendance) {
                 const d = await res.json();
                 
                 if(d.success) {
+                    hasAttendedToday = true;
+                    btnDoAttendance.innerHTML = "<i class='fa-solid fa-check'></i> ĐÃ ĐIỂM DANH";
+                    btnDoAttendance.style.opacity = "0.7";
+                    
+                    const today = new Date().getDay(); 
+                    const currentDayLi = document.querySelector(`#attendance-list li[data-day="${today}"]`);
+                    if (currentDayLi) {
+                        const statusIcon = currentDayLi.querySelector(".status-icon");
+                        if (statusIcon) statusIcon.innerHTML = "<i class='fa-solid fa-circle-check' style='color: var(--color-mint); margin-left: 8px; font-size: 16px;'></i>";
+                        currentDayLi.style.background = "rgba(52, 211, 153, 0.1)";
+                        currentDayLi.style.borderRadius = "8px";
+                        currentDayLi.style.padding = "8px";
+                        currentDayLi.style.borderBottom = "none";
+                    }
+
+                    // Cập nhật số dư
                     currentXu = d.new_xu;
                     document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
                     document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
@@ -614,10 +701,24 @@ if (btnDoAttendance) {
                         document.getElementById("user-exp").innerText = `${d.new_exp}/${d.exp_required}`;
                     }
                     showToast(`🎉 Điểm danh thành công! Ông nhận được ${d.reward_xu} Xu và ${d.reward_exp} EXP.`);
+                } else if (d.error) {
+                    showToast("❌ " + d.error);
+                    btnDoAttendance.innerHTML = "<i class='fa-solid fa-pen-to-square'></i> ĐIỂM DANH NGAY";
+                    btnDoAttendance.disabled = false;
                 }
-            } catch(e) { console.error("Lỗi API Điểm danh:", e); }
-            
-        }, 800);
+            } catch(e) { 
+                console.error("Lỗi API Điểm danh:", e); 
+                showToast("❌ Lỗi kết nối máy chủ, vui lòng thử lại!");
+                btnDoAttendance.innerHTML = "<i class='fa-solid fa-pen-to-square'></i> ĐIỂM DANH NGAY";
+                btnDoAttendance.disabled = false;
+            }
+
+        }).catch((error) => {
+            // Trường hợp user tắt ngang quảng cáo
+            showToast("❌ Ông chưa xem hết quảng cáo nên không thể điểm danh nhé!");
+            btnDoAttendance.innerHTML = "<i class='fa-solid fa-pen-to-square'></i> ĐIỂM DANH NGAY";
+            btnDoAttendance.disabled = false;
+        });
     });
 }
 
@@ -953,6 +1054,64 @@ if (btnUpgrade) {
             const nextLvl = document.getElementById("next-level-display").innerText;
             btnUpgrade.innerHTML = `<i class="fa-solid fa-level-up-alt fa-bounce"></i> NÂNG CẤP LÊN LV <span id="next-level-display">${nextLvl}</span>`;
             btnUpgrade.disabled = false;
+        });
+    });
+}
+
+// ================= XỬ LÝ NÚT NHẬN THƯỞNG 7 NGÀY =================
+const btnClaimWeekly = document.getElementById("btn-claim-weekly");
+if (btnClaimWeekly) {
+    btnClaimWeekly.addEventListener("click", () => {
+        // 1. Đổi nút thành trạng thái tải quảng cáo
+        btnClaimWeekly.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
+        btnClaimWeekly.disabled = true;
+
+        // 2. Gọi quảng cáo Adsgram
+        AdController.show().then(async (result) => {
+            // Xem xong quảng cáo thì bắt đầu gọi API mở rương
+            btnClaimWeekly.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG MỞ RƯƠNG...";
+
+            try {
+                const claimUrl = API_URL.replace('/api/data', '/api/claim_weekly');
+                const res = await fetch(claimUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
+                    body: JSON.stringify({ initData: tg.initData })
+                });
+                const d = await res.json();
+                
+                if (d.success) {
+                    // Đổi nút thành màu xám báo đã nhận
+                    btnClaimWeekly.innerHTML = "<i class='fa-solid fa-check-double'></i> ĐÃ NHẬN THƯỞNG";
+                    btnClaimWeekly.className = "btn-gray";
+                    
+                    // Cập nhật số dư
+                    currentXu = d.new_xu;
+                    document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
+                    document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
+                    
+                    const lvl = document.getElementById("user-level").innerText;
+                    if(!lvl.includes("20") && !lvl.includes("MAX")) {
+                        document.getElementById("user-exp").innerText = `${d.new_exp}/${d.exp_required}`;
+                    }
+                    
+                    showToast(`🎉 CHÚC MỪNG! Mở rương thành công, nhận ${d.reward_xu.toLocaleString()} Xu & ${d.reward_exp} EXP!`);
+                } else if (d.error) {
+                    showToast("❌ " + d.error);
+                    btnClaimWeekly.innerHTML = "<i class='fa-solid fa-unlock fa-bounce'></i> NHẬN RƯƠNG THƯỞNG";
+                    btnClaimWeekly.disabled = false;
+                }
+            } catch(e) {
+                console.error("Lỗi:", e);
+                showToast("❌ Lỗi mạng, không thể nhận thưởng!");
+                btnClaimWeekly.innerHTML = "<i class='fa-solid fa-unlock fa-bounce'></i> NHẬN RƯƠNG THƯỞNG";
+                btnClaimWeekly.disabled = false;
+            }
+        }).catch((error) => {
+            // Trường hợp user tắt ngang quảng cáo chưa xem hết
+            showToast("❌ Ông chưa xem hết quảng cáo nên rương bị khóa lại nhé!");
+            btnClaimWeekly.innerHTML = "<i class='fa-solid fa-unlock fa-bounce'></i> NHẬN RƯƠNG THƯỞNG";
+            btnClaimWeekly.disabled = false;
         });
     });
 }

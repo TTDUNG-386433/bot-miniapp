@@ -710,29 +710,45 @@ button:active {
 /* ================= THÔNG BÁO TOAST ================= */
 .custom-toast {
     position: fixed;
-    top: 20px;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%) translateY(-100px);
+    transform: translate(-50%, -50%) scale(0.8); /* Căn chính giữa và thu nhỏ lúc chưa hiện */
     background: rgba(30, 41, 59, 0.95);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #f8fafc;
-    padding: 14px 24px;
-    border-radius: 16px;
-    font-size: 14px;
+    padding: 30px 20px; /* Đệm trên dưới dày lên để tạo form hình hộp */
+    border-radius: 20px; /* Bo góc mềm mại */
+    font-size: 15px;
     font-weight: 600;
     display: flex;
+    flex-direction: column; /* Ép icon nằm trên, chữ nằm dưới */
     align-items: center;
-    gap: 12px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    justify-content: center;
+    gap: 15px; /* Khoảng cách giữa icon và chữ */
+    box-shadow: 0 10px 50px rgba(0,0,0,0.8);
     z-index: 10000;
     opacity: 0;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    white-space: nowrap;
+    
+    /* Canh chỉnh kích thước và chữ */
+    width: 80%; /* Chiếm 80% chiều rộng điện thoại */
+    max-width: 280px; /* Giới hạn độ to tối đa để ra hình vuông/chữ nhật đứng */
+    text-align: center; /* Căn giữa chữ */
+    line-height: 1.5; /* Giãn dòng cho dễ đọc */
 }
+
+/* Hiệu ứng nảy popup ra giữa màn hình */
 .custom-toast.show {
-    transform: translateX(-50%) translateY(0);
+    transform: translate(-50%, -50%) scale(1);
     opacity: 1;
 }
-.custom-toast.success i { color: #34d399; font-size: 18px; }
-.custom-toast.error i { color: #f43f5e; font-size: 18px; }
+
+/* Cho icon to ra làm điểm nhấn chính giữa */
+.custom-toast i {
+    font-size: 45px !important; 
+}
+
+/* Màu của icon theo trạng thái */
+.custom-toast.success i { color: #34d399; }
+.custom-toast.error i { color: #f43f5e; }

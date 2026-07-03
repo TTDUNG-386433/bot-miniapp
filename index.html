@@ -41,7 +41,7 @@
                     <li><span class="label-text"><i class="fa-solid fa-gauge-high"></i> Tốc độ:</span> <span id="mining-speed" class="val">0 Xu/giờ</span></li>
                     <li><span class="label-text"><i class="fa-solid fa-clock"></i> Thời gian còn lại:</span> <span id="mining-time" class="val time-stopped">00:00:00 (Đang dừng)</span></li>
                 </ul>
-                <button id="btn-activate-mining" class="btn-primary"><i class="fa-solid fa-gift"></i> KÍCH HOẠT ĐÀO FREE (4H)</button>
+                <button id="btn-activate-mining" class="btn-primary"><i class="fa-solid fa-gift"></i> KÍCH HOẠT ĐÀO </button>
             </div>
 
             <div class="balance-box">
@@ -163,7 +163,28 @@
                         </ul>
                     </div>
 
-                    <button id="btn-do-attendance" class="btn-pink" style="font-size: 16px;"><i class="fa-solid fa-pen-to-square"></i> ĐIỂM DANH NGAY</button>
+                    <button id="btn-do-attendance" class="btn-pink" style="font-size: 16px; margin-bottom: 30px;"><i class="fa-solid fa-pen-to-square"></i> ĐIỂM DANH NGAY</button>
+
+                    <div style="margin-bottom: 15px; text-align: center;">
+                        <h3 style="margin-bottom: 0; color: var(--color-mint); justify-content: center;">
+                            <i class="fa-solid fa-chest-unbound fa-bounce"></i> THƯỞNG ĐIỂM DANH
+                        </h3>
+                    </div>
+
+                    <div id="attendance-reward-box" style="margin-bottom: 20px; padding: 15px; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 12px; text-align: center;">
+                        <div style="color: var(--text-main); font-size: 13px; margin-bottom: 12px;">
+                            Điểm danh đủ 7 ngày liên tiếp để mở khóa nhận <span style="color: var(--color-gold); font-weight: bold;">+50,000 Xu & +100 EXP</span>.
+                        </div>
+                        <div style="font-weight: bold; color: var(--text-muted); font-size: 13px; margin-bottom: 15px;">
+                            Tiến độ: <span id="attendance-progress" style="color: var(--color-mint); font-size: 16px;">0/7</span> ngày
+                        </div>
+                        
+                        <!-- Nút này mặc định bị khóa (màu xám) -->
+                        <button id="btn-claim-weekly" class="btn-gray" disabled style="padding: 12px; font-size: 14px; width: 100%; border-radius: 10px;">
+                            <i class="fa-solid fa-lock"></i> CHƯA ĐỦ ĐIỀU KIỆN
+                        </button>
+                    </div>
+
                 </div>
 
                 <div id="inline-leaderboard-container" style="display: none; text-align: center;">
