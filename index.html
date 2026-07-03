@@ -89,10 +89,12 @@
                 </div>
 
                 <div id="inline-wheel-container" style="display: none; text-align: center;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                        <button id="btn-back-utils" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px; box-shadow: none;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+                    <div style="margin-bottom: 25px;">
+                        <div style="text-align: left; margin-bottom: 15px;">
+                            <button id="btn-back-utils" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px; box-shadow: none;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+                        </div>
                         <h3 style="margin-bottom: 0; color: var(--color-gold); justify-content: center;"><i class="fa-solid fa-ferris-wheel"></i> VÒNG QUAY</h3>
-                        <div style="width: 85px;"></div> </div>
+                    </div>
                     
                     <div class="wheel-container" style="transform: scale(0.9); margin-top: -20px;">
                         <div class="wheel-pointer"><i class="fa-solid fa-caret-down"></i></div>
@@ -135,10 +137,11 @@
                 <!-- KHU VỰC 3: ĐIỂM DANH HÀNG NGÀY (Ẩn mặc định) -->
                 <div id="inline-attendance-container" style="display: none; text-align: center;">
                     <!-- Thanh tiêu đề -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                        <button id="btn-back-attendance" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px; box-shadow: none;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+                    <div style="margin-bottom: 25px;">
+                        <div style="text-align: left; margin-bottom: 15px;">
+                            <button id="btn-back-attendance" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px; box-shadow: none;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+                        </div>
                         <h3 style="margin-bottom: 0; color: #ec4899; justify-content: center;"><i class="fa-solid fa-calendar-check"></i> ĐIỂM DANH</h3>
-                        <div style="width: 85px;"></div> <!-- Tạo khoảng trống để cân bằng -->
                     </div>
                     
                     <!-- Bảng danh sách các ngày -->
@@ -158,10 +161,12 @@
                 </div>
 
                 <div id="inline-leaderboard-container" style="display: none; text-align: center;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                        <button id="btn-back-leaderboard" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px; box-shadow: none;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+                    <div style="margin-bottom: 25px;">
+                        <div style="text-align: left; margin-bottom: 15px;">
+                            <button id="btn-back-leaderboard" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px; box-shadow: none;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+                        </div>
                         <h3 style="margin-bottom: 0; color: var(--color-gold); justify-content: center;"><i class="fa-solid fa-trophy"></i> XẾP HẠNG THỢ MỎ</h3>
-                        <div style="width: 85px;"></div> </div>
+                    </div>
                     
                     <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.08);">
                         <ul class="info-list" id="leaderboard-list" style="text-align: left; margin-bottom: 0;">
@@ -170,10 +175,12 @@
                 </div>
 
                 <div id="inline-invite-container" style="display: none; text-align: center;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                        <button id="btn-back-invite" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px; box-shadow: none;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+                    <div style="margin-bottom: 25px;">
+                        <div style="text-align: left; margin-bottom: 15px;">
+                            <button id="btn-back-invite" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px; box-shadow: none;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+                        </div>
                         <h3 style="margin-bottom: 0; color: var(--color-mint); justify-content: center;"><i class="fa-solid fa-user-plus"></i> MỜI BẠN BÈ</h3>
-                        <div style="width: 85px;"></div> </div>
+                    </div>
                     
                     <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 25px 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.08);">
                         <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">Số bạn bè đã mời thành công</div>
@@ -213,10 +220,17 @@
             </div>
 
             <div class="card" id="wd-form-bank" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <button class="btn-back-wd" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
-                    <h3 style="margin-bottom: 0; color: #3b82f6;"><i class="fa-solid fa-building-columns"></i> RÚT NGÂN HÀNG</h3>
-                    <div style="width: 85px;"></div>
+                <div style="margin-bottom: 20px;">
+                    <div style="text-align: left; margin-bottom: 15px;">
+                        <button class="btn-back-wd" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+                    </div>
+                    <h3 style="margin-bottom: 0; color: #3b82f6; justify-content: center;"><i class="fa-solid fa-building-columns"></i> RÚT NGÂN HÀNG</h3>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 20px; border: 1px dashed rgba(255,255,255,0.1);">
+                    <div style="color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Số dư khả dụng:</div>
+                    <span id="wd-bank-xu" style="color: var(--color-mint); font-weight: bold; font-size: 16px;">0</span> <span style="color: var(--color-mint); font-size: 14px;">Xu</span> 
+                    <span style="color: var(--text-muted); font-size: 13px;">(~<span id="wd-bank-vnd">0</span> VNĐ)</span>
                 </div>
                 
                 <input type="number" id="bank-amount" class="input-field" placeholder="Số tiền rút (VNĐ) - VD: 5000">
@@ -228,10 +242,17 @@
             </div>
 
             <div class="card" id="wd-form-momo" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <button class="btn-back-wd" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
-                    <h3 style="margin-bottom: 0; color: #d946ef;"><i class="fa-solid fa-wallet"></i> RÚT VÍ MOMO</h3>
-                    <div style="width: 85px;"></div>
+                <div style="margin-bottom: 20px;">
+                    <div style="text-align: left; margin-bottom: 15px;">
+                        <button class="btn-back-wd" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+                    </div>
+                    <h3 style="margin-bottom: 0; color: #d946ef; justify-content: center;"><i class="fa-solid fa-wallet"></i> RÚT VÍ MOMO</h3>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 20px; border: 1px dashed rgba(255,255,255,0.1);">
+                    <div style="color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Số dư khả dụng:</div>
+                    <span id="wd-momo-xu" style="color: var(--color-mint); font-weight: bold; font-size: 16px;">0</span> <span style="color: var(--color-mint); font-size: 14px;">Xu</span> 
+                    <span style="color: var(--text-muted); font-size: 13px;">(~<span id="wd-momo-vnd">0</span> VNĐ)</span>
                 </div>
                 
                 <input type="number" id="momo-amount" class="input-field" placeholder="Số tiền rút (VNĐ) - VD: 5000">
