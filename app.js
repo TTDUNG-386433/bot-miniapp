@@ -145,8 +145,46 @@ if (watchAdBtn) {
     });
 }
 
-// Nút kích hoạt máy đào
-const btnActivate
+const btnActivate = document.getElementById("btn-activate-mining");
+if (btnActivate) {
+    btnActivate.addEventListener("click", async () => {
+        if (!userId) {
+            return tg.showAlert("Ko tìm thấy ID User Telegram!");
+        }
+
+        // Hiệu ứng chờ khi bấm
+        btnActivate.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG KÍCH HOẠT...";
+        btnActivate.disabled = true;
+
+        try {
+            // Tận dụng API_URL cũ nhưng thay path sang claim_free
+            const claimUrl = API_URL.replace('/api/data', '/api/claim_free') + `?user_id=${userId}`;
+            
+            const response = await fetch(claimUrl, {
+                method: 'POST',
+                headers: {
+                    "ngrok-skip-browser-warning": "true"
+                }
+            });
+            const data = await response.json();
+            
+            if (data.error) {
+                tg.showAlert(data.error); // Thông báo lỗi (VD: chưa tới 6h sáng)
+            } else if (data.success) {
+                tg.showAlert("🎉 Chúc mừng! Máy đào đã đc kích hoạt chạy 4 tiếng.");
+                // Chạy đếm ngược lập tức trên WebApp
+                startMiningTimer(data.new_end_time);
+            }
+        } catch (err) {
+            console.error("Lỗi API Kích hoạt:", err);
+            tg.showAlert("❌ Lỗi kết nối đến server máy chủ!");
+        }
+        
+        // Khôi phục nút
+        btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
+        btnActivate.disabled = false;
+    });
+}
 
 // ================= LOGIC VÒNG QUAY MAY MẮN (INLINE) =================
 const btnLuckyWheel = document.getElementById("btn-lucky-wheel");
