@@ -146,12 +146,7 @@ if (watchAdBtn) {
 }
 
 // Nút kích hoạt máy đào
-const btnActivate = document.getElementById("btn-activate-mining");
-if (btnActivate) {
-    btnActivate.addEventListener("click", () => {
-        tg.showAlert("Yêu cầu kích hoạt máy đào đã gửi! Vui lòng thao tác qua các phím Inline trong khung chat bot để đồng bộ hóa thời gian chính xác.");
-    });
-}
+const btnActivate
 
 // ================= LOGIC VÒNG QUAY MAY MẮN (INLINE) =================
 const btnLuckyWheel = document.getElementById("btn-lucky-wheel");
