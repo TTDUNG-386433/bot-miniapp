@@ -45,7 +45,7 @@ async function loadRealData() {
     }
     
     try {
-        const response = await fetch(`${API_URL}?user_id=${userId}`, {
+        const response = await fetch(`${API_URL}?user_id=${userId}&t=${new Date().getTime()}`, {
             headers: {
                 "ngrok-skip-browser-warning": "true"
             }
@@ -777,7 +777,7 @@ async function syncData() {
     isSyncing = true;
     
     try {
-        const response = await fetch(`${API_URL}?user_id=${userId}`, {
+        const response = await fetch(`${API_URL}?user_id=${userId}&t=${new Date().getTime()}`, {
             headers: { "ngrok-skip-browser-warning": "true" }
         });
         const data = await response.json();
@@ -839,6 +839,8 @@ setTimeout(() => {
             syncData().then(() => {
                 refreshBtn.innerHTML = "<i class='fa-solid fa-rotate'></i> LÀM MỚI TRẠNG THÁI LINK";
                 refreshBtn.style.opacity = "1";
+                // Thêm dòng này vào để báo cho ng dùng biết app đã load xong data
+                showToast("Đã cập nhật dữ liệu mới nhất!", "success");
             });
         };
         watchAdBtn.parentNode.insertBefore(refreshBtn, watchAdBtn.nextSibling);
