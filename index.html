@@ -28,6 +28,11 @@
                     <li><span class="label-text"><i class="fa-solid fa-medal"></i> Cấp độ:</span> <span id="user-level" class="val">Lv 20</span></li>
                     <li><span class="label-text"><i class="fa-solid fa-star"></i> EXP:</span> <span id="user-exp" class="val">MAX LEVEL</span></li>
                 </ul>
+
+                <button id="btn-upgrade-level" class="btn-mint" style="display: none; margin-top: 15px; font-size: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="fa-solid fa-level-up-alt fa-bounce"></i> NÂNG CẤP LÊN LV <span id="next-level-display"></span>
+                </button>
+
             </div>
 
             <div class="card">
@@ -101,15 +106,15 @@
                         <div class="wheel" id="lucky-wheel">
                             <div class="wheel-inner">
                                 <span class="prize p1">100 Xu</span>
-                                <span class="prize p2">50 EXP</span>
+                                <span class="prize p2">3 EXP</span>
                                 <span class="prize p3">200 Xu</span>
-                                <span class="prize p4">10 EXP</span>
-                                <span class="prize p5">500 Xu</span>
-                                <span class="prize p6">100 EXP</span>
-                                <span class="prize p7">50 Xu</span>
-                                <span class="prize p8">20 EXP</span>
-                                <span class="prize p9">1000 Xu</span>
-                                <span class="prize p10">200 EXP</span>
+                                <span class="prize p4">5 EXP</span>
+                                <span class="prize p5">300 Xu</span>
+                                <span class="prize p6">7 EXP</span>
+                                <span class="prize p7">400 Xu</span>
+                                <span class="prize p8">10 EXP</span>
+                                <span class="prize p9">500 Xu</span>
+                                <span class="prize p10">12 EXP</span>
                             </div>
                         </div>
                     </div>
@@ -121,11 +126,12 @@
                         </div>
                         <div style="margin-bottom: 8px;">
                             <i class="fa-solid fa-bullseye" style="color: var(--color-mint);"></i> <b>Tiến độ nhận vé:</b><br>
+                            <span style="margin-left: 18px;">- Mời bạn bè: <span id="display-extra-spins" style="color: var(--color-mint); font-weight: bold;">0</span> vé</span><br>
                             <span style="margin-left: 18px;">- Số Link đã vượt: <span id="display-links" style="color: var(--color-mint); font-weight: bold;">0</span> (1 vé/Link)</span><br>
                             <span style="margin-left: 18px;">- Xem Quảng cáo: <span id="display-ads" style="color: var(--color-mint); font-weight: bold;">0</span>/3 (1 vé/3 lần)</span>
                         </div>
                         <div style="color: var(--text-muted); font-size: 11px; margin-top: 10px; font-style: italic;">
-                            * Điều kiện: Vượt thành công 1 Link HOẶC xem 3 Quảng cáo sẽ được tặng 1 lượt quay. Tối đa 5 lượt mỗi ngày.
+                            * Điều kiện: Mời 1 bạn (+3 vé), vượt 1 Link hoặc xem 3 Quảng cáo (+1 vé). Tối đa 5 lượt quay mỗi ngày (Riêng vé mời bạn bè sẽ KHÔNG BỊ GIỚI HẠN số lần quay).
                         </div>
                     </div>
 
@@ -147,13 +153,13 @@
                     <!-- Bảng danh sách các ngày -->
                     <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.08);">
                         <ul class="info-list" id="attendance-list" style="text-align: left; margin-bottom: 0;">
-                            <li data-day="1"><span class="label-text"><i class="fa-regular fa-calendar"></i> Thứ 2</span><span class="val">100 Xu + 5 EXP <span class="status-icon"></span></span></li>
-                            <li data-day="2"><span class="label-text"><i class="fa-regular fa-calendar"></i> Thứ 3</span><span class="val">150 Xu + 10 EXP <span class="status-icon"></span></span></li>
-                            <li data-day="3"><span class="label-text"><i class="fa-regular fa-calendar"></i> Thứ 4</span><span class="val">200 Xu + 15 EXP <span class="status-icon"></span></span></li>
-                            <li data-day="4"><span class="label-text"><i class="fa-regular fa-calendar"></i> Thứ 5</span><span class="val">250 Xu + 20 EXP <span class="status-icon"></span></span></li>
-                            <li data-day="5"><span class="label-text"><i class="fa-regular fa-calendar"></i> Thứ 6</span><span class="val">300 Xu + 25 EXP <span class="status-icon"></span></span></li>
-                            <li data-day="6"><span class="label-text"><i class="fa-regular fa-calendar"></i> Thứ 7</span><span class="val">400 Xu + 30 EXP <span class="status-icon"></span></span></li>
-                            <li data-day="0" style="border-bottom: none; padding-bottom: 0;"><span class="label-text" style="color: #f43f5e;"><i class="fa-regular fa-calendar"></i> Chủ nhật</span><span class="val">500 Xu + 30 EXP <span class="status-icon"></span></span></li>
+                            <li data-day="1"><span class="label-text"><i class="fa-regular fa-calendar"></i> Thứ 2</span><span class="val">500 Xu + 10 EXP <span class="status-icon"></span></span></li>
+                            <li data-day="2"><span class="label-text"><i class="fa-regular fa-calendar"></i> Thứ 3</span><span class="val">500 Xu + 10 EXP <span class="status-icon"></span></span></li>
+                            <li data-day="3"><span class="label-text"><i class="fa-regular fa-calendar"></i> Thứ 4</span><span class="val">500 Xu + 10 EXP <span class="status-icon"></span></span></li>
+                            <li data-day="4"><span class="label-text"><i class="fa-regular fa-calendar"></i> Thứ 5</span><span class="val">500 Xu + 10 EXP <span class="status-icon"></span></span></li>
+                            <li data-day="5"><span class="label-text"><i class="fa-regular fa-calendar"></i> Thứ 6</span><span class="val">500 Xu + 10 EXP <span class="status-icon"></span></span></li>
+                            <li data-day="6"><span class="label-text"><i class="fa-regular fa-calendar"></i> Thứ 7</span><span class="val">500 Xu + 10 EXP <span class="status-icon"></span></span></li>
+                            <li data-day="0" style="border-bottom: none; padding-bottom: 0;"><span class="label-text" style="color: #f43f5e;"><i class="fa-regular fa-calendar"></i> Chủ nhật</span><span class="val">500 Xu + 10 EXP <span class="status-icon"></span></span></li>
                         </ul>
                     </div>
 
@@ -188,7 +194,7 @@
                             <i class="fa-solid fa-users" style="font-size: 28px; margin-right: 5px;"></i> <span id="invited-count">0</span>
                         </div>
                         <div style="font-size: 13px; color: var(--text-main); line-height: 1.5; padding: 0 10px;">
-                            Thưởng <span style="color: var(--color-gold); font-weight: bold;">+5,000 Xu, +50 EXP và +3 Lượt quay</span> cho mỗi người bạn tham gia qua liên kết của bạn!
+                            Thưởng <span style="color: var(--color-gold); font-weight: bold;">+5,000 Xu, +20 EXP và +3 Lượt quay</span> cho mỗi người bạn tham gia qua liên kết của bạn!
                         </div>
                     </div>
 

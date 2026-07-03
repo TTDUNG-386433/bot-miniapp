@@ -1,21 +1,22 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// ⚠️ QUAN TRỌNG: Điền địa chỉ IP hoặc Domain VPS chạy bot của ông vào đây
 const API_URL = "https://irritant-dwarf-starlit.ngrok-free.dev/api/data";
 const userId = tg.initDataUnsafe?.user?.id || 0; 
 
-// --- CÁC BIẾN TOÀN CỤC ---
 let miningInterval;
-let userAdsWatched = 0;     // Số ads đã xem
-let userLinksCompleted = 0; // Số link đã vượt
-let dailySpins = 0;         // Số lần đã quay hôm nay
-const MAX_DAILY_SPINS = 5;  // Giới hạn 5 lần/ngày
-let currentXu = 0;       // Lưu số xu hiện tại
-let miningSpeed = 0;     // Tốc độ đào (Xu/giờ)
-let fractionalXu = 0;    // Số dư lẻ thập phân để cộng dồn mỗi giây
-let currentTasksState = {}; // Biến này để theo dõi xem link nào đã làm, link nào chưa
+let userAdsWatched = 0;   
+let userLinksCompleted = 0; 
+let dailySpins = 0;         
+const MAX_DAILY_SPINS = 5;  
+let currentXu = 0;       
+let miningSpeed = 0;     
+let fractionalXu = 0;    
+let currentTasksState = {}; 
 let isSyncing = false;
+let extraSpins = 0;
+let totalLinksCompleted = 0;
+let currentLevel = 1;
 
 // Hàm hiển thị thông báo xịn
 function showToast(message, type = 'success') {
@@ -37,6 +38,24 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
+// Hàm check và hiển thị nút Nâng Cấp
+function checkLevelUp(exp, exp_required, level) {
+    const btnUpgrade = document.getElementById("btn-upgrade-level");
+    if (!btnUpgrade) return;
+
+    if (level >= 20) { 
+        btnUpgrade.style.display = "none";
+        return;
+    }
+
+    if (exp >= exp_required) {
+        btnUpgrade.style.display = "block";
+        document.getElementById("next-level-display").innerText = level + 1;
+    } else {
+        btnUpgrade.style.display = "none";
+    }
+}
+
 // ================= HÀM KẾT NỐI API LẤY DATA THẬT =================
 async function loadRealData() {
     if (!userId) {
@@ -45,7 +64,7 @@ async function loadRealData() {
     }
     
     try {
-        const response = await fetch(`${API_URL}?user_id=${userId}&t=${new Date().getTime()}`, {
+        const response = await fetch(`${API_URL}?initData=${encodeURIComponent(tg.initData)}&t=${new Date().getTime()}`, {
             headers: {
                 "ngrok-skip-browser-warning": "true"
             }
@@ -60,6 +79,16 @@ async function loadRealData() {
         currentXu = data.user.xu;
         miningSpeed = data.user.speed;
         fractionalXu = 0;
+
+        extraSpins = data.user.extra_spins || 0;
+        totalLinksCompleted = data.user.total_links || 0; 
+        currentLevel = data.user.level || 1;
+        
+        const displayExtraSpins = document.getElementById("display-extra-spins");
+        if (displayExtraSpins) displayExtraSpins.innerText = extraSpins;
+        
+        const invitedCountEl = document.getElementById("invited-count");
+        if (invitedCountEl) invitedCountEl.innerText = data.user.invited_count || 0;
         
         // 1. Cập nhật thông tin Tài khoản & Ví tiền thật
         document.getElementById("user-name").innerText = data.user.username ? data.user.username : "Ẩn danh";
@@ -69,6 +98,8 @@ async function loadRealData() {
         
         document.getElementById("xu-balance").innerText = data.user.xu.toLocaleString();
         document.getElementById("vnd-balance").innerText = (data.user.xu / 100).toLocaleString();
+
+        checkLevelUp(data.user.exp, data.user.exp_required, data.user.level);
         
         // 2. Đồng bộ số liệu nhiệm vụ để tính lượt quay cho Vòng Quay
         const completedLinksCount = data.tasks.filter(t => t.completed).length;
@@ -203,10 +234,11 @@ if (watchAdBtn) {
 
             try {
                 // Gọi API nhận thưởng
-                const adUrl = API_URL.replace('/api/data', '/api/watch_ad') + `?user_id=${userId}`;
+                const adUrl = API_URL.replace('/api/data', '/api/watch_ad');
                 const response = await fetch(adUrl, {
                     method: 'POST',
-                    headers: { "ngrok-skip-browser-warning": "true" }
+                    headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
+                    body: JSON.stringify({ initData: tg.initData }) 
                 });
                 const data = await response.json();
 
@@ -260,11 +292,11 @@ if (btnActivate) {
             
             try {
                 // Link API claim_free mà tôi đã hướng dẫn ông làm lúc trước
-                const claimUrl = API_URL.replace('/api/data', '/api/claim_free') + `?user_id=${userId}`;
-                
+                const claimUrl = API_URL.replace('/api/data', '/api/claim_free');
                 const response = await fetch(claimUrl, {
                     method: 'POST',
-                    headers: { "ngrok-skip-browser-warning": "true" }
+                    headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
+                    body: JSON.stringify({ initData: tg.initData })
                 });
                 const data = await response.json();
                 
@@ -304,8 +336,8 @@ const wheel = document.getElementById("lucky-wheel");
 const resultDiv = document.getElementById("wheel-result");
 
 const prizes = [
-    "100 Xu", "50 EXP", "200 Xu", "10 EXP", "500 Xu",
-    "100 EXP", "50 Xu", "20 EXP", "1000 Xu", "200 EXP"
+    "100 Xu", "3 EXP", "200 Xu", "5 EXP", "300 Xu",
+    "7 EXP", "400 Xu", "10 EXP", "500 Xu", "12 EXP"
 ];
 
 let currentRotation = 0;
@@ -328,69 +360,83 @@ if (btnBackUtils) {
 }
 
 if (btnSpin) {
-    btnSpin.addEventListener("click", () => {
+    // ĐỔI THÀNH async VÌ PHẢI GỌI API TRƯỚC
+    btnSpin.addEventListener("click", async () => {
         if (isSpinning) return;
 
-        if (dailySpins >= MAX_DAILY_SPINS) {
-            showToast("🛑 Hôm nay ông đã quay hết 5 lần rồi! Hãy quay lại vào ngày mai nhé.");
+        if (dailySpins >= MAX_DAILY_SPINS && extraSpins < 1) {
+            showToast("🛑 Hôm nay ông đã quay hết 5 lần rồi! Hãy nhận thêm vé từ mời bạn bè hoặc quay lại ngày mai.");
             return;
         }
 
-        if (userLinksCompleted < 1 && userAdsWatched < 3) {
-            showToast(`⚠️ Chưa đủ điều kiện!\n\nÔng cần vượt thành công 1 Link (đã có: ${userLinksCompleted}) HOẶC xem 3 Quảng Cáo (đã có: ${userAdsWatched}) để đổi 1 lượt quay.`);
+        if (userLinksCompleted < 1 && userAdsWatched < 3 && extraSpins < 1) {
+            showToast(`⚠️ Chưa đủ điều kiện!\n\nÔng cần vượt 1 Link, xem 3 Ads, hoặc có vé mời bạn bè để quay.`);
             return;
         }
 
-        if (userLinksCompleted >= 1) {
-            userLinksCompleted -= 1; 
-        } else {
-            userAdsWatched -= 3; 
-        }
-
-        // Cập nhật lại số liệu hiển thị vé quay sau khi trừ
-        if(document.getElementById("display-links")) document.getElementById("display-links").innerText = userLinksCompleted;
-        if(document.getElementById("display-ads")) document.getElementById("display-ads").innerText = userAdsWatched;
-
-        dailySpins++;
-        isSpinning = true;
-        if(resultDiv) resultDiv.style.opacity = "0";
-        
-        const prizeIndex = Math.floor(Math.random() * 10);
-        const spinSpins = 5; 
-        const targetDeg = 360 - (prizeIndex * 36 + 18);
-        
-        currentRotation += (spinSpins * 360) + targetDeg - (currentRotation % 360);
-        
-        btnSpin.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG QUAY...";
+        // Báo hiệu đang gọi API
+        btnSpin.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG KẾT NỐI...";
         btnSpin.style.opacity = "0.7";
-        
-        wheel.style.transform = `rotate(${currentRotation}deg)`;
-        
-        setTimeout(async () => {
-            isSpinning = false;
-            btnSpin.innerHTML = "<i class='fa-solid fa-rotate-right'></i> QUAY";
-            btnSpin.style.opacity = "1";
-            
-            if(resultDiv) {
-                resultDiv.innerHTML = `🎉 Chúc mừng trúng: <span style="color: var(--color-gold); font-size: 16px;">${prizes[prizeIndex]}</span>!<br><span style="font-size: 12px; color: var(--text-muted);">Lượt quay hôm nay: ${dailySpins}/${MAX_DAILY_SPINS}</span>`;
-                resultDiv.style.opacity = "1";
+        isSpinning = true;
+
+        try {
+            // 1. GỌI API TRƯỚC ĐỂ LẤY KẾT QUẢ TỪ BACKEND
+            const wheelUrl = API_URL.replace('/api/data', '/api/wheel');
+            const res = await fetch(wheelUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
+                body: JSON.stringify({ initData: tg.initData }) 
+            });
+            const d = await res.json();
+
+            if (d.error) {
+                showToast("❌ " + d.error);
+                isSpinning = false;
+                btnSpin.innerHTML = "<i class='fa-solid fa-rotate-right'></i> QUAY";
+                btnSpin.style.opacity = "1";
+                return;
             }
-            
-            // Xử lý chuỗi để lấy đúng con số Xu/EXP
-            let thuongXu = prizes[prizeIndex].includes("Xu") ? parseInt(prizes[prizeIndex]) : 0;
-            let thuongExp = prizes[prizeIndex].includes("EXP") ? parseInt(prizes[prizeIndex]) : 0;
-            
-            // Gọi API nhận thưởng
-            try {
-                const wheelUrl = API_URL.replace('/api/data', '/api/wheel');
-                const res = await fetch(wheelUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
-                    body: JSON.stringify({ user_id: userId, xu: thuongXu, exp: thuongExp })
-                });
-                const d = await res.json();
+
+            if(d.success) {
+                // 2. NẾU API THÀNH CÔNG, BẮT ĐẦU TRỪ VÉ HIỂN THỊ
+                if (extraSpins >= 1) {
+                    extraSpins -= 1;
+                } else if (userLinksCompleted >= 1) {
+                    userLinksCompleted -= 1; 
+                } else {
+                    userAdsWatched -= 3; 
+                }
+
+                if(document.getElementById("display-extra-spins")) document.getElementById("display-extra-spins").innerText = extraSpins;
+                if(document.getElementById("display-links")) document.getElementById("display-links").innerText = userLinksCompleted;
+                if(document.getElementById("display-ads")) document.getElementById("display-ads").innerText = userAdsWatched;
+
+                dailySpins++;
+                if(resultDiv) resultDiv.style.opacity = "0";
                 
-                if(d.success) {
+                // 3. LẤY SỐ THỨ TỰ Ô TRÚNG THƯỞNG MÀ BACKEND TRẢ VỀ
+                const prizeIndex = d.prize_index; 
+                
+                // 4. BẮT ĐẦU HIỆU ỨNG QUAY BÁNH XE THEO ĐÚNG KẾT QUẢ
+                const spinSpins = 5; 
+                const targetDeg = 360 - (prizeIndex * 36 + 18);
+                currentRotation += (spinSpins * 360) + targetDeg - (currentRotation % 360);
+                
+                btnSpin.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG QUAY...";
+                wheel.style.transform = `rotate(${currentRotation}deg)`;
+                
+                // 5. ĐỢI 4 GIÂY CHO BÁNH XE QUAY XONG THÌ SHOW THÔNG BÁO
+                setTimeout(() => {
+                    isSpinning = false;
+                    btnSpin.innerHTML = "<i class='fa-solid fa-rotate-right'></i> QUAY";
+                    btnSpin.style.opacity = "1";
+                    
+                    if(resultDiv) {
+                        resultDiv.innerHTML = `🎉 Chúc mừng trúng: <span style="color: var(--color-gold); font-size: 16px;">${prizes[prizeIndex]}</span>!<br><span style="font-size: 12px; color: var(--text-muted);">Lượt quay hôm nay: ${dailySpins}/${MAX_DAILY_SPINS}</span>`;
+                        resultDiv.style.opacity = "1";
+                    }
+                    
+                    // Cập nhật lại số tiền thật từ API cho chuẩn
                     currentXu = d.new_xu;
                     document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
                     document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
@@ -399,10 +445,15 @@ if (btnSpin) {
                     if(!lvl.includes("20") && !lvl.includes("MAX")) {
                         document.getElementById("user-exp").innerText = `${d.new_exp}/${d.exp_required}`;
                     }
-                }
-            } catch(e) { console.error("Lỗi API Vòng quay:", e); }
-            
-        }, 4000);
+                }, 4000);
+            }
+        } catch(e) { 
+            console.error("Lỗi API Vòng quay:", e); 
+            showToast("❌ Mất kết nối đến server, ko thể quay!");
+            isSpinning = false;
+            btnSpin.innerHTML = "<i class='fa-solid fa-rotate-right'></i> QUAY";
+            btnSpin.style.opacity = "1";
+        }
     });
 }
 
@@ -489,7 +540,7 @@ if (btnShareLink) {
     btnShareLink.addEventListener("click", () => {
         const botUsername = "Farmcoinvn2026_bot"; 
         const refLink = `https://t.me/${botUsername}?start=ref_${userId}`;
-        const shareText = "🔥 Vào cày Xu đào coin Mini App cực bốc cùng mình nhận ngay 5,000 Xu, 50 EXP và 3 lượt quay miễn phí nhé!";
+       const shareText = "🔥 Vào cày Xu đào coin Mini App cực bốc cùng mình nhận ngay 5,000 Xu, 20 EXP và 3 lượt quay miễn phí nhé!";
         const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent(shareText)}`;
         tg.openTelegramLink(shareUrl);
     });
@@ -549,7 +600,7 @@ if (btnDoAttendance) {
                 const res = await fetch(attUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
-                    body: JSON.stringify({ user_id: userId })
+                    body: JSON.stringify({ initData: tg.initData })
                 });
                 const d = await res.json();
                 
@@ -674,9 +725,9 @@ if (btnSubmitBank) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
                 body: JSON.stringify({
-                    user_id: userId,
+                    initData: tg.initData,
                     amount_vnd: amount,
-                    method: "Ngân Hàng",
+                    method: "Ngân Hàng", // Hoặc "Momo"
                     info: formatInfo,
                     username: userName
                 })
@@ -736,7 +787,7 @@ if (btnSubmitMomo) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
                 body: JSON.stringify({
-                    user_id: userId,
+                    initData: tg.initData,
                     amount_vnd: amount,
                     method: "Momo",
                     info: formatInfo,
@@ -768,16 +819,15 @@ if (btnSubmitMomo) {
         btnSubmitMomo.disabled = false;
     });
 }
-// ================= TỰ ĐỘNG KÍCH HOẠT KHI MỞ MÀN HÌNH =================
+
 loadRealData();
 
-// ================= HÀM ĐỒNG BỘ DỮ LIỆU NGẦM (DÀNH CHO VƯỢT LINK) =================
 async function syncData() {
     if (!userId || isSyncing) return;
     isSyncing = true;
     
     try {
-        const response = await fetch(`${API_URL}?user_id=${userId}&t=${new Date().getTime()}`, {
+        const response = await fetch(`${API_URL}?initData=${encodeURIComponent(tg.initData)}&t=${new Date().getTime()}`, {
             headers: { "ngrok-skip-browser-warning": "true" }
         });
         const data = await response.json();
@@ -793,7 +843,8 @@ async function syncData() {
         });
 
         if (newlyCompleted > 0) {
-            showToast(`🎉 Đỉnh quá! Ông vừa vượt thành công ${newlyCompleted} Link. Phần thưởng Xu và EXP đã được cộng vào ví!`);
+            totalLinksCompleted += newlyCompleted;
+            showToast(`🎉 Bạn vượt thành công ${newlyCompleted} Link. Phần thưởng Xu và EXP đã được cộng vào ví!`);
             
             currentXu = data.user.xu;
             document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
@@ -846,3 +897,62 @@ setTimeout(() => {
         watchAdBtn.parentNode.insertBefore(refreshBtn, watchAdBtn.nextSibling);
     }
 }, 1000);
+
+
+const btnUpgrade = document.getElementById("btn-upgrade-level");
+if (btnUpgrade) {
+    btnUpgrade.addEventListener("click", async () => {
+        const requiredLinks = currentLevel * 5;
+        if (totalLinksCompleted < requiredLinks) {
+            showToast(`⚠️ Chưa thể nâng cấp do chưa đủ số link vượt (Cần ${requiredLinks} link, bạn mới có ${totalLinksCompleted}). Bạn vượt link xong rồi nâng cấp.`, "error");
+            return;
+        }
+
+        btnUpgrade.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
+        btnUpgrade.disabled = true;
+
+        AdController.show().then(async (result) => {
+            btnUpgrade.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG NÂNG CẤP...";
+
+            try {
+                const upgUrl = API_URL.replace('/api/data', '/api/upgrade');
+                const res = await fetch(upgUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
+                    body: JSON.stringify({ initData: tg.initData })
+                });
+                const d = await res.json();
+
+                if (d.error) {
+                    showToast("❌ " + d.error, "error");
+                } else if (d.success) {
+                    showToast(`🎉 Bạn vừa thăng cấp lên Lv ${d.new_level}! Tốc độ máy đào đã tăng.`, "success");
+                    
+                    currentLevel = d.new_level;
+                    document.getElementById("user-level").innerText = `Lv ${d.new_level}`;
+                    document.getElementById("user-exp").innerText = d.new_level >= 20 ? "MAX LEVEL" : `${d.new_exp}/${d.new_exp_required}`;
+                    document.getElementById("mining-speed").innerText = `${d.new_speed.toLocaleString()} Xu/giờ`;
+                    
+                    miningSpeed = d.new_speed; 
+                    
+                    checkLevelUp(d.new_exp, d.new_exp_required, d.new_level);
+                }
+            } catch (err) {
+                showToast("❌ Lỗi kết nối mạng, không thể nâng cấp lúc này!", "error");
+            }
+            
+            if (btnUpgrade.style.display !== "none") {
+                const nextLvl = document.getElementById("next-level-display").innerText;
+                btnUpgrade.innerHTML = `<i class="fa-solid fa-level-up-alt fa-bounce"></i> NÂNG CẤP LÊN LV <span id="next-level-display">${nextLvl}</span>`;
+                btnUpgrade.disabled = false;
+            }
+
+        }).catch((error) => {
+            showToast("⚠️ Hiện đang hết video quảng cáo vui lòng thử lại sau.", "error");
+            
+            const nextLvl = document.getElementById("next-level-display").innerText;
+            btnUpgrade.innerHTML = `<i class="fa-solid fa-level-up-alt fa-bounce"></i> NÂNG CẤP LÊN LV <span id="next-level-display">${nextLvl}</span>`;
+            btnUpgrade.disabled = false;
+        });
+    });
+}
