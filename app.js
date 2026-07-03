@@ -11,6 +11,11 @@ let userAdsWatched = 0;     // Số ads đã xem
 let userLinksCompleted = 0; // Số link đã vượt
 let dailySpins = 0;         // Số lần đã quay hôm nay
 const MAX_DAILY_SPINS = 5;  // Giới hạn 5 lần/ngày
+let currentXu = 0;       // Lưu số xu hiện tại
+let miningSpeed = 0;     // Tốc độ đào (Xu/giờ)
+let fractionalXu = 0;    // Số dư lẻ thập phân để cộng dồn mỗi giây
+let currentTasksState = {}; // Biến này để theo dõi xem link nào đã làm, link nào chưa
+let isSyncing = false;
 
 // ================= HÀM KẾT NỐI API LẤY DATA THẬT =================
 async function loadRealData() {
@@ -31,6 +36,10 @@ async function loadRealData() {
             console.error("Lỗi API:", data.error);
             return;
         }
+
+        currentXu = data.user.xu;
+        miningSpeed = data.user.speed;
+        fractionalXu = 0;
         
         // 1. Cập nhật thông tin Tài khoản & Ví tiền thật
         document.getElementById("user-name").innerText = data.user.username ? `@${data.user.username}` : "Ẩn danh";
@@ -53,6 +62,9 @@ async function loadRealData() {
         renderLeaderboard(data.leaderboard);
         
         // 5. Đổ dữ liệu thật vào Danh Sách Nhiệm Vụ
+        data.tasks.forEach(t => {
+            currentTasksState[t.id] = t.completed;
+        });
         renderTaskList(data.tasks);
         
     } catch (err) {
@@ -60,12 +72,22 @@ async function loadRealData() {
     }
 }
 
-// ================= HÀM ĐẾM NGƯỢC MÁY ĐÀO REALTIME =================
 function startMiningTimer(endTimeStr) {
     const timeElement = document.getElementById("mining-time");
+    const btnActivate = document.getElementById("btn-activate-mining");
+
+    // Nếu ko có thời gian hoặc đang dừng
     if (!endTimeStr || endTimeStr === "None") {
         timeElement.innerText = "00:00:00 (Đang dừng)";
         timeElement.classList.add("time-stopped");
+        
+        // Mở khóa lại nút kích hoạt
+        if (btnActivate) {
+            btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
+            btnActivate.disabled = false;
+            btnActivate.style.opacity = "1";
+            btnActivate.classList.remove("btn-gray"); // Bỏ màu xám (nếu có)
+        }
         return;
     }
     
@@ -77,19 +99,48 @@ function startMiningTimer(endTimeStr) {
     miningInterval = setInterval(() => {
         const distance = endTime - new Date().getTime();
         
+        // HẾT GIỜ ĐÀO
         if (distance <= 0) {
             clearInterval(miningInterval);
             timeElement.innerText = "00:00:00 (Đang dừng)";
             timeElement.classList.add("time-stopped");
+            
+            // Trả lại nút kích hoạt
+            if (btnActivate) {
+                btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
+                btnActivate.disabled = false;
+                btnActivate.style.opacity = "1";
+            }
             return;
         }
         
+        // ĐANG TRONG THỜI GIAN ĐÀO
+        if (btnActivate && !btnActivate.disabled) {
+            btnActivate.innerHTML = "<i class='fa-solid fa-hammer fa-bounce'></i> ĐANG ĐÀO...";
+            btnActivate.disabled = true;
+            btnActivate.style.opacity = "0.7";
+        }
+
         timeElement.classList.remove("time-stopped");
         const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
         
         timeElement.innerText = `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+        
+        // LOGIC TĂNG XU REALTIME
+        if (miningSpeed > 0) {
+            fractionalXu += miningSpeed / 3600; // Tốc độ chia cho 3600 giây
+            if (fractionalXu >= 1) {
+                const addXu = Math.floor(fractionalXu);
+                currentXu += addXu;
+                fractionalXu -= addXu; // Giữ lại phần lẻ
+                
+                // Cập nhật giao diện
+                document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
+                document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString(); // RATE = 100
+            }
+        }
     }, 1000);
 }
 
@@ -120,69 +171,105 @@ if (watchAdBtn) {
         watchAdBtn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         watchAdBtn.disabled = true;
 
-        AdController.show().then((result) => {
+        AdController.show().then(async (result) => {
             userAdsWatched++;
             
             const displayAdsEl = document.getElementById("display-ads");
             if (displayAdsEl) displayAdsEl.innerText = userAdsWatched;
 
-            tg.showAlert(`Đã xem xong quảng cáo! (Tiến độ vé quay: ${userAdsWatched}/3 Ads)`);
-            
-            const payload = JSON.stringify({
-                action: "ads_completed",
-                xu: 1000 
-            });
-            tg.sendData(payload); 
-            
-            watchAdBtn.innerHTML = "<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO (+Xu Thưởng)";
+            // Báo hiệu đang chờ server xử lý cộng tiền
+            watchAdBtn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG NHẬN THƯỞNG...";
+
+            try {
+                // Gọi API nhận thưởng
+                const adUrl = API_URL.replace('/api/data', '/api/watch_ad') + `?user_id=${userId}`;
+                const response = await fetch(adUrl, {
+                    method: 'POST',
+                    headers: { "ngrok-skip-browser-warning": "true" }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    // 1. Cập nhật số Xu mới (cộng thẳng vào biến realtime của máy đào)
+                    currentXu = data.new_xu;
+                    document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
+                    document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
+
+                    // 2. Cập nhật EXP hiển thị lên thẻ Tài Khoản
+                    const levelText = document.getElementById("user-level").innerText;
+                    if (!levelText.includes("20") && !levelText.includes("MAX")) {
+                        document.getElementById("user-exp").innerText = `${data.new_exp}/${data.exp_required}`;
+                    }
+
+                    tg.showAlert(`🎉 Đỉnh chóp! Ông vừa húp trọn ${data.reward_xu} Xu và ${data.reward_exp} EXP.`);
+                }
+            } catch (err) {
+                console.error("Lỗi API Ads:", err);
+                tg.showAlert("❌ Có lỗi mạng khi cộng thưởng, ông check lại đường truyền nhé!");
+            }
+
+            // Khôi phục nút bấm
+            watchAdBtn.innerHTML = "<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO";
             watchAdBtn.disabled = false;
 
         }).catch((error) => {
-            tg.showAlert("Quảng cáo đã bị đóng hoặc lỗi kết nối. Chưa nhận đc phần thưởng!");
-            watchAdBtn.innerHTML = "<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO (+Xu Thưởng)";
+            tg.showAlert("❌ Ông tắt quảng cáo sớm quá nên chưa đc nhận thưởng đâu nha!");
+            watchAdBtn.innerHTML = "<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO";
             watchAdBtn.disabled = false;
         });
     });
 }
 
+// Nút kích hoạt máy đào
 const btnActivate = document.getElementById("btn-activate-mining");
 if (btnActivate) {
-    btnActivate.addEventListener("click", async () => {
+    btnActivate.addEventListener("click", () => {
         if (!userId) {
             return tg.showAlert("Ko tìm thấy ID User Telegram!");
         }
 
-        // Hiệu ứng chờ khi bấm
-        btnActivate.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG KÍCH HOẠT...";
+        // Đổi trạng thái sang chờ xem ads
+        btnActivate.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnActivate.disabled = true;
 
-        try {
-            // Tận dụng API_URL cũ nhưng thay path sang claim_free
-            const claimUrl = API_URL.replace('/api/data', '/api/claim_free') + `?user_id=${userId}`;
+        // Bắt đầu show quảng cáo
+        AdController.show().then(async (result) => {
+            // Xem xong thì đổi chữ và gọi API kích hoạt
+            btnActivate.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG KHỞI ĐỘNG MÁY...";
             
-            const response = await fetch(claimUrl, {
-                method: 'POST',
-                headers: {
-                    "ngrok-skip-browser-warning": "true"
+            try {
+                // Link API claim_free mà tôi đã hướng dẫn ông làm lúc trước
+                const claimUrl = API_URL.replace('/api/data', '/api/claim_free') + `?user_id=${userId}`;
+                
+                const response = await fetch(claimUrl, {
+                    method: 'POST',
+                    headers: { "ngrok-skip-browser-warning": "true" }
+                });
+                const data = await response.json();
+                
+                if (data.error) {
+                    tg.showAlert(data.error);
+                    // Nếu lỗi (vd: chưa tới ngày mới), trả lại nút
+                    btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
+                    btnActivate.disabled = false;
+                } else if (data.success) {
+                    tg.showAlert("🎉 Xem quảng cáo thành công! Máy đào đã chạy.");
+                    // Chạy đếm ngược (hàm bên trên sẽ tự động khóa nút và nhảy chữ ĐANG ĐÀO)
+                    startMiningTimer(data.new_end_time);
                 }
-            });
-            const data = await response.json();
-            
-            if (data.error) {
-                tg.showAlert(data.error); // Thông báo lỗi (VD: chưa tới 6h sáng)
-            } else if (data.success) {
-                tg.showAlert("🎉 Chúc mừng! Máy đào đã đc kích hoạt chạy 4 tiếng.");
-                // Chạy đếm ngược lập tức trên WebApp
-                startMiningTimer(data.new_end_time);
+            } catch (err) {
+                console.error("Lỗi API Kích hoạt:", err);
+                tg.showAlert("❌ Lỗi kết nối đến server máy chủ!");
+                btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
+                btnActivate.disabled = false;
             }
-        } catch (err) {
-            console.error("Lỗi API Kích hoạt:", err);
-            tg.showAlert("❌ Lỗi kết nối đến server máy chủ!");
-        }
-        
-        // Khôi phục nút
-        btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
-        btnActivate.disabled = false;
+
+        }).catch((error) => {
+            // Trường hợp user ấn tắt quảng cáo giữa chừng hoặc lỗi load ads
+            tg.showAlert("❌ Ông chưa xem xong quảng cáo hoặc lỗi mạng. Kích hoạt bị hủy!");
+            btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
+            btnActivate.disabled = false;
+        });
     });
 }
 
@@ -258,7 +345,7 @@ if (btnSpin) {
         
         wheel.style.transform = `rotate(${currentRotation}deg)`;
         
-        setTimeout(() => {
+        setTimeout(async () => {
             isSpinning = false;
             btnSpin.innerHTML = "<i class='fa-solid fa-rotate-right'></i> QUAY";
             btnSpin.style.opacity = "1";
@@ -268,17 +355,31 @@ if (btnSpin) {
                 resultDiv.style.opacity = "1";
             }
             
-            // Đồng bộ tăng Xu/EXP lên thẳng Bot chat Telegram luôn
-            let thuongXu = 0;
-            let thuongExp = 0;
-            if(prizes[prizeIndex].includes("Xu")) thuongXu = parseInt(prizes[prizeIndex]);
-            if(prizes[prizeIndex].includes("EXP")) thuongExp = parseInt(prizes[prizeIndex]);
+            // Xử lý chuỗi để lấy đúng con số Xu/EXP
+            let thuongXu = prizes[prizeIndex].includes("Xu") ? parseInt(prizes[prizeIndex]) : 0;
+            let thuongExp = prizes[prizeIndex].includes("EXP") ? parseInt(prizes[prizeIndex]) : 0;
             
-            tg.sendData(JSON.stringify({
-                action: "wheel_reward",
-                xu: thuongXu,
-                exp: thuongExp
-            }));
+            // Gọi API nhận thưởng
+            try {
+                const wheelUrl = API_URL.replace('/api/data', '/api/wheel');
+                const res = await fetch(wheelUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
+                    body: JSON.stringify({ user_id: userId, xu: thuongXu, exp: thuongExp })
+                });
+                const d = await res.json();
+                
+                if(d.success) {
+                    currentXu = d.new_xu;
+                    document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
+                    document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
+                    
+                    const lvl = document.getElementById("user-level").innerText;
+                    if(!lvl.includes("20") && !lvl.includes("MAX")) {
+                        document.getElementById("user-exp").innerText = `${d.new_exp}/${d.exp_required}`;
+                    }
+                }
+            } catch(e) { console.error("Lỗi API Vòng quay:", e); }
             
         }, 4000);
     });
@@ -405,7 +506,7 @@ if (btnDoAttendance) {
         btnDoAttendance.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG XỬ LÝ...";
         btnDoAttendance.disabled = true;
 
-        setTimeout(() => {
+        setTimeout(async () => {
             hasAttendedToday = true;
             btnDoAttendance.innerHTML = "<i class='fa-solid fa-check'></i> ĐÃ ĐIỂM DANH";
             btnDoAttendance.style.opacity = "0.7";
@@ -414,17 +515,36 @@ if (btnDoAttendance) {
             const currentDayLi = document.querySelector(`#attendance-list li[data-day="${today}"]`);
             if (currentDayLi) {
                 const statusIcon = currentDayLi.querySelector(".status-icon");
-                if (statusIcon) {
-                    statusIcon.innerHTML = "<i class='fa-solid fa-circle-check' style='color: var(--color-mint); margin-left: 8px; font-size: 16px;'></i>";
-                }
+                if (statusIcon) statusIcon.innerHTML = "<i class='fa-solid fa-circle-check' style='color: var(--color-mint); margin-left: 8px; font-size: 16px;'></i>";
                 currentDayLi.style.background = "rgba(52, 211, 153, 0.1)";
                 currentDayLi.style.borderRadius = "8px";
                 currentDayLi.style.padding = "8px";
                 currentDayLi.style.borderBottom = "none";
             }
 
-            tg.showAlert("Điểm danh thành công! Bạn đã nhận đc phần thưởng của ngày hôm nay.");
-            tg.sendData(JSON.stringify({ action: "daily_attendance" }));
+            // Gọi API Điểm danh
+            try {
+                const attUrl = API_URL.replace('/api/data', '/api/attendance');
+                const res = await fetch(attUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
+                    body: JSON.stringify({ user_id: userId })
+                });
+                const d = await res.json();
+                
+                if(d.success) {
+                    currentXu = d.new_xu;
+                    document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
+                    document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
+                    
+                    const lvl = document.getElementById("user-level").innerText;
+                    if(!lvl.includes("20") && !lvl.includes("MAX")) {
+                        document.getElementById("user-exp").innerText = `${d.new_exp}/${d.exp_required}`;
+                    }
+                    tg.showAlert(`🎉 Điểm danh thành công! Ông nhận được ${d.reward_xu} Xu và ${d.reward_exp} EXP.`);
+                }
+            } catch(e) { console.error("Lỗi API Điểm danh:", e); }
+            
         }, 800);
     });
 }
@@ -489,8 +609,9 @@ btnsBackWd.forEach(btn => {
     });
 });
 
+// ================= XỬ LÝ GỬI LỆNH RÚT NGÂN HÀNG =================
 if (btnSubmitBank) {
-    btnSubmitBank.addEventListener("click", () => {
+    btnSubmitBank.addEventListener("click", async () => {
         const amount = parseInt(document.getElementById("bank-amount").value);
         const bankName = document.getElementById("bank-name").value.trim();
         const stk = document.getElementById("bank-stk").value.trim();
@@ -504,19 +625,56 @@ if (btnSubmitBank) {
         }
 
         const formatInfo = `${bankName} - ${stk} - ${fullName.toUpperCase()}`;
+        const userName = tg.initDataUnsafe?.user?.username || tg.initDataUnsafe?.user?.first_name || "Ẩn danh";
         
-        tg.sendData(JSON.stringify({
-            action: "withdraw",
-            method: "Ngân Hàng",
-            amount_vnd: amount,
-            info: formatInfo
-        }));
-        tg.close(); 
+        btnSubmitBank.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG XỬ LÝ...";
+        btnSubmitBank.disabled = true;
+
+        try {
+            const wdUrl = API_URL.replace('/api/data', '/api/withdraw');
+            const res = await fetch(wdUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
+                body: JSON.stringify({
+                    user_id: userId,
+                    amount_vnd: amount,
+                    method: "Ngân Hàng",
+                    info: formatInfo,
+                    username: userName
+                })
+            });
+            const data = await res.json();
+
+            if (data.error) {
+                tg.showAlert("❌ " + data.error);
+            } else if (data.success) {
+                // Trừ tiền trên giao diện tức thì
+                currentXu = data.new_xu;
+                document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
+                document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
+                
+                tg.showAlert("✅ Lệnh rút đã được gửi! Admin đang xem xét duyệt, ông chú ý check tin nhắn bot nhé.");
+                
+                // Trả về màn hình chọn phương thức & Xóa trắng form
+                wdFormBank.style.display = "none";
+                wdMethodContainer.style.display = "block";
+                document.getElementById("bank-amount").value = "";
+                document.getElementById("bank-name").value = "";
+                document.getElementById("bank-stk").value = "";
+                document.getElementById("bank-fullname").value = "";
+            }
+        } catch (err) {
+            tg.showAlert("❌ Lỗi kết nối mạng, vui lòng thử lại sau!");
+        }
+
+        btnSubmitBank.innerHTML = "<i class='fa-solid fa-paper-plane'></i> GỬI LỆNH RÚT";
+        btnSubmitBank.disabled = false;
     });
 }
 
+// ================= XỬ LÝ GỬI LỆNH RÚT MOMO =================
 if (btnSubmitMomo) {
-    btnSubmitMomo.addEventListener("click", () => {
+    btnSubmitMomo.addEventListener("click", async () => {
         const amount = parseInt(document.getElementById("momo-amount").value);
         const phone = document.getElementById("momo-phone").value.trim();
         const fullName = document.getElementById("momo-fullname").value.trim();
@@ -529,16 +687,122 @@ if (btnSubmitMomo) {
         }
 
         const formatInfo = `${phone} - ${fullName.toUpperCase()}`;
+        const userName = tg.initDataUnsafe?.user?.username || tg.initDataUnsafe?.user?.first_name || "Ẩn danh";
         
-        tg.sendData(JSON.stringify({
-            action: "withdraw",
-            method: "Momo",
-            amount_vnd: amount,
-            info: formatInfo
-        }));
-        tg.close();
+        btnSubmitMomo.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG XỬ LÝ...";
+        btnSubmitMomo.disabled = true;
+
+        try {
+            const wdUrl = API_URL.replace('/api/data', '/api/withdraw');
+            const res = await fetch(wdUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
+                body: JSON.stringify({
+                    user_id: userId,
+                    amount_vnd: amount,
+                    method: "Momo",
+                    info: formatInfo,
+                    username: userName
+                })
+            });
+            const data = await res.json();
+
+            if (data.error) {
+                tg.showAlert("❌ " + data.error);
+            } else if (data.success) {
+                currentXu = data.new_xu;
+                document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
+                document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
+                
+                tg.showAlert("✅ Lệnh rút đã được gửi! Admin đang xem xét duyệt, ông chú ý check tin nhắn bot nhé.");
+                
+                wdFormMomo.style.display = "none";
+                wdMethodContainer.style.display = "block";
+                document.getElementById("momo-amount").value = "";
+                document.getElementById("momo-phone").value = "";
+                document.getElementById("momo-fullname").value = "";
+            }
+        } catch (err) {
+            tg.showAlert("❌ Lỗi kết nối mạng, vui lòng thử lại sau!");
+        }
+
+        btnSubmitMomo.innerHTML = "<i class='fa-solid fa-paper-plane'></i> GỬI LỆNH RÚT";
+        btnSubmitMomo.disabled = false;
     });
 }
-
 // ================= TỰ ĐỘNG KÍCH HOẠT KHI MỞ MÀN HÌNH =================
 loadRealData();
+
+// ================= HÀM ĐỒNG BỘ DỮ LIỆU NGẦM (DÀNH CHO VƯỢT LINK) =================
+async function syncData() {
+    if (!userId || isSyncing) return;
+    isSyncing = true;
+    
+    try {
+        const response = await fetch(`${API_URL}?user_id=${userId}`, {
+            headers: { "ngrok-skip-browser-warning": "true" }
+        });
+        const data = await response.json();
+        if (data.error) return;
+
+        let newlyCompleted = 0;
+        
+        data.tasks.forEach(task => {
+            if (task.completed === true && currentTasksState[task.id] === false) {
+                newlyCompleted++;
+            }
+            currentTasksState[task.id] = task.completed; 
+        });
+
+        if (newlyCompleted > 0) {
+            tg.showAlert(`🎉 Đỉnh quá! Ông vừa vượt thành công ${newlyCompleted} Link. Phần thưởng Xu và EXP đã được cộng vào ví!`);
+            
+            currentXu = data.user.xu;
+            document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
+            document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
+            
+            const levelText = document.getElementById("user-level").innerText;
+            if (!levelText.includes("20") && !levelText.includes("MAX")) {
+                document.getElementById("user-exp").innerText = `${data.user.exp}/${data.user.exp_required}`;
+            }
+
+            const completedLinksCount = data.tasks.filter(t => t.completed).length;
+            const displayLinks = document.getElementById("display-links");
+            if (displayLinks) displayLinks.innerText = completedLinksCount;
+            userLinksCompleted = completedLinksCount;
+        }
+
+        renderTaskList(data.tasks);
+
+    } catch (err) {
+        console.error("Lỗi đồng bộ ngầm:", err);
+    } finally {
+        isSyncing = false; 
+    }
+}
+
+window.addEventListener('focus', syncData);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') syncData();
+});
+
+setTimeout(() => {
+    const watchAdBtn = document.getElementById("btn-watch-ad");
+    if (watchAdBtn && !document.getElementById("btn-refresh-tasks")) {
+        const refreshBtn = document.createElement("button");
+        refreshBtn.id = "btn-refresh-tasks";
+        refreshBtn.className = "btn-mint"; 
+        refreshBtn.style.marginTop = "10px";
+        refreshBtn.innerHTML = "<i class='fa-solid fa-rotate'></i> LÀM MỚI TRẠNG THÁI LINK";
+        
+        refreshBtn.onclick = () => {
+            refreshBtn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG LÀM MỚI...";
+            refreshBtn.style.opacity = "0.7";
+            syncData().then(() => {
+                refreshBtn.innerHTML = "<i class='fa-solid fa-rotate'></i> LÀM MỚI TRẠNG THÁI LINK";
+                refreshBtn.style.opacity = "1";
+            });
+        };
+        watchAdBtn.parentNode.insertBefore(refreshBtn, watchAdBtn.nextSibling);
+    }
+}, 1000);
