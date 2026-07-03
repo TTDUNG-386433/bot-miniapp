@@ -593,21 +593,25 @@ if (btnWdBank && btnWdMomo) {
     btnWdBank.addEventListener("click", () => {
         wdMethodContainer.style.display = "none";
         wdFormBank.style.display = "block";
+        
+        // Nhét số Xu và VNĐ vào form Ngân Hàng
+        if (document.getElementById("wd-bank-xu")) {
+            document.getElementById("wd-bank-xu").innerText = currentXu.toLocaleString();
+            document.getElementById("wd-bank-vnd").innerText = (currentXu / 100).toLocaleString();
+        }
     });
 
     btnWdMomo.addEventListener("click", () => {
         wdMethodContainer.style.display = "none";
         wdFormMomo.style.display = "block";
+        
+        // Nhét số Xu và VNĐ vào form Momo
+        if (document.getElementById("wd-momo-xu")) {
+            document.getElementById("wd-momo-xu").innerText = currentXu.toLocaleString();
+            document.getElementById("wd-momo-vnd").innerText = (currentXu / 100).toLocaleString();
+        }
     });
 }
-
-btnsBackWd.forEach(btn => {
-    btn.addEventListener("click", () => {
-        wdFormBank.style.display = "none";
-        wdFormMomo.style.display = "none";
-        wdMethodContainer.style.display = "block";
-    });
-});
 
 // ================= XỬ LÝ GỬI LỆNH RÚT NGÂN HÀNG =================
 if (btnSubmitBank) {
