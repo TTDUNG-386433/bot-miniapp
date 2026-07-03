@@ -17,6 +17,26 @@ let fractionalXu = 0;    // Số dư lẻ thập phân để cộng dồn mỗi 
 let currentTasksState = {}; // Biến này để theo dõi xem link nào đã làm, link nào chưa
 let isSyncing = false;
 
+// Hàm hiển thị thông báo xịn
+function showToast(message, type = 'success') {
+    // Rung điện thoại nhẹ cho sướng tay
+    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred(type);
+    
+    let icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-xmark';
+
+    const toast = document.createElement('div');
+    toast.className = `custom-toast ${type}`;
+    toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
+
 // ================= HÀM KẾT NỐI API LẤY DATA THẬT =================
 async function loadRealData() {
     if (!userId) {
@@ -115,10 +135,11 @@ function startMiningTimer(endTimeStr) {
         }
         
         // ĐANG TRONG THỜI GIAN ĐÀO
-        if (btnActivate && !btnActivate.disabled) {
+        if (btnActivate) {
             btnActivate.innerHTML = "<i class='fa-solid fa-hammer fa-bounce'></i> ĐANG ĐÀO...";
             btnActivate.disabled = true;
             btnActivate.style.opacity = "0.7";
+            btnActivate.style.background = "#475569"; // Đổi sang màu xám cho đúng chuẩn nút đang bị vô hiệu hóa
         }
 
         timeElement.classList.remove("time-stopped");
@@ -584,7 +605,20 @@ const wdFormMomo = document.getElementById("wd-form-momo");
 
 const btnWdBank = document.getElementById("btn-wd-bank");
 const btnWdMomo = document.getElementById("btn-wd-momo");
+// ================= XỬ LÝ NÚT QUAY LẠI PHẦN RÚT TIỀN =================
 const btnsBackWd = document.querySelectorAll(".btn-back-wd");
+
+if (btnsBackWd.length > 0) {
+    btnsBackWd.forEach(btn => {
+        btn.addEventListener("click", () => {
+            // Ẩn 2 form nhập liệu đi
+            if (wdFormBank) wdFormBank.style.display = "none";
+            if (wdFormMomo) wdFormMomo.style.display = "none";
+            // Hiện lại form chọn phương thức ban đầu
+            if (wdMethodContainer) wdMethodContainer.style.display = "block";
+        });
+    });
+}
 
 const btnSubmitBank = document.getElementById("btn-submit-bank");
 const btnSubmitMomo = document.getElementById("btn-submit-momo");
