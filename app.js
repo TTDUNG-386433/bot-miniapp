@@ -80,15 +80,16 @@ async function loadRealData() {
         miningSpeed = data.user.speed;
         fractionalXu = 0;
 
+        // Thay đoạn hiển thị vé cũ thành đoạn này
         extraSpins = data.user.extra_spins || 0;
-        totalLinksCompleted = data.user.total_links || 0; 
-        currentLevel = data.user.level || 1;
-        
-        const displayExtraSpins = document.getElementById("display-extra-spins");
-        if (displayExtraSpins) displayExtraSpins.innerText = extraSpins;
-        
-        const invitedCountEl = document.getElementById("invited-count");
-        if (invitedCountEl) invitedCountEl.innerText = data.user.invited_count || 0;
+        let freeTickets = data.user.free_tickets || 0;
+        dailySpins = data.user.daily_spins || 0;
+        let adCount = data.user.ad_count || 0;
+
+        if(document.getElementById("display-extra-spins")) document.getElementById("display-extra-spins").innerText = extraSpins;
+        if(document.getElementById("display-free-tickets")) document.getElementById("display-free-tickets").innerText = freeTickets;
+        if(document.getElementById("display-daily-spins")) document.getElementById("display-daily-spins").innerText = `${dailySpins}/5`;
+        if(document.getElementById("display-ads-count")) document.getElementById("display-ads-count").innerText = adCount % 3;
         
         // 1. Cập nhật thông tin Tài khoản & Ví tiền thật
         document.getElementById("user-name").innerText = data.user.username ? data.user.username : "Ẩn danh";
@@ -285,18 +286,22 @@ if (watchAdBtn) {
                 const data = await response.json();
 
                 if (data.success) {
-                    // 1. Cập nhật số Xu mới (cộng thẳng vào biến realtime của máy đào)
                     currentXu = data.new_xu;
                     document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
                     document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
 
-                    // 2. Cập nhật EXP hiển thị lên thẻ Tài Khoản
                     const levelText = document.getElementById("user-level").innerText;
                     if (!levelText.includes("20") && !levelText.includes("MAX")) {
                         document.getElementById("user-exp").innerText = `${data.new_exp}/${data.exp_required}`;
                     }
+                    
+                    // Cập nhật lại UI hiển thị vé và Ads
+                    let adCount = data.ad_count || 0;
+                    let freeTickets = data.free_tickets || 0;
+                    if(document.getElementById("display-ads-count")) document.getElementById("display-ads-count").innerText = adCount % 3;
+                    if(document.getElementById("display-free-tickets")) document.getElementById("display-free-tickets").innerText = freeTickets;
 
-                    showToast(`🎉 Đỉnh chóp! Ông vừa húp trọn ${data.reward_xu} Xu và ${data.reward_exp} EXP.`);
+                    showToast(`🎉 Bạn vừa nhận được ${data.reward_xu} Xu và ${data.reward_exp} EXP.`);
                 }
             } catch (err) {
                 console.error("Lỗi API Ads:", err);
@@ -406,23 +411,11 @@ if (btnSpin) {
     btnSpin.addEventListener("click", async () => {
         if (isSpinning) return;
 
-        if (dailySpins >= MAX_DAILY_SPINS && extraSpins < 1) {
-            showToast("🛑 Hôm nay ông đã quay hết 5 lần rồi! Hãy nhận thêm vé từ mời bạn bè hoặc quay lại ngày mai.");
-            return;
-        }
-
-        if (userLinksCompleted < 1 && userAdsWatched < 3 && extraSpins < 1) {
-            showToast(`⚠️ Chưa đủ điều kiện!\n\nÔng cần vượt 1 Link, xem 3 Ads, hoặc có vé mời bạn bè để quay.`);
-            return;
-        }
-
-        // Báo hiệu đang gọi API
         btnSpin.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG KẾT NỐI...";
         btnSpin.style.opacity = "0.7";
         isSpinning = true;
 
         try {
-            // 1. GỌI API TRƯỚC ĐỂ LẤY KẾT QUẢ TỪ BACKEND
             const wheelUrl = API_URL.replace('/api/data', '/api/wheel');
             const res = await fetch(wheelUrl, {
                 method: 'POST',
@@ -440,26 +433,18 @@ if (btnSpin) {
             }
 
             if(d.success) {
-                // 2. NẾU API THÀNH CÔNG, BẮT ĐẦU TRỪ VÉ HIỂN THỊ
-                if (extraSpins >= 1) {
-                    extraSpins -= 1;
-                } else if (userLinksCompleted >= 1) {
-                    userLinksCompleted -= 1; 
-                } else {
-                    userAdsWatched -= 3; 
-                }
-
+                // Cập nhật lại UI đếm vé từ Backend phản hồi
+                dailySpins = d.daily_spins;
+                extraSpins = d.extra_spins;
+                let freeTickets = d.free_tickets;
+                
                 if(document.getElementById("display-extra-spins")) document.getElementById("display-extra-spins").innerText = extraSpins;
-                if(document.getElementById("display-links")) document.getElementById("display-links").innerText = userLinksCompleted;
-                if(document.getElementById("display-ads")) document.getElementById("display-ads").innerText = userAdsWatched;
+                if(document.getElementById("display-free-tickets")) document.getElementById("display-free-tickets").innerText = freeTickets;
+                if(document.getElementById("display-daily-spins")) document.getElementById("display-daily-spins").innerText = `${dailySpins}/5`;
 
-                dailySpins++;
                 if(resultDiv) resultDiv.style.opacity = "0";
                 
-                // 3. LẤY SỐ THỨ TỰ Ô TRÚNG THƯỞNG MÀ BACKEND TRẢ VỀ
                 const prizeIndex = d.prize_index; 
-                
-                // 4. BẮT ĐẦU HIỆU ỨNG QUAY BÁNH XE THEO ĐÚNG KẾT QUẢ
                 const spinSpins = 5; 
                 const targetDeg = 360 - (prizeIndex * 36 + 18);
                 currentRotation += (spinSpins * 360) + targetDeg - (currentRotation % 360);
@@ -467,18 +452,17 @@ if (btnSpin) {
                 btnSpin.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG QUAY...";
                 wheel.style.transform = `rotate(${currentRotation}deg)`;
                 
-                // 5. ĐỢI 4 GIÂY CHO BÁNH XE QUAY XONG THÌ SHOW THÔNG BÁO
                 setTimeout(() => {
                     isSpinning = false;
                     btnSpin.innerHTML = "<i class='fa-solid fa-rotate-right'></i> QUAY";
                     btnSpin.style.opacity = "1";
                     
                     if(resultDiv) {
-                        resultDiv.innerHTML = `🎉 Chúc mừng trúng: <span style="color: var(--color-gold); font-size: 16px;">${prizes[prizeIndex]}</span>!<br><span style="font-size: 12px; color: var(--text-muted);">Lượt quay hôm nay: ${dailySpins}/${MAX_DAILY_SPINS}</span>`;
+                        // FIX BUG 2: Ko nhét "Lượt quay hôm nay" xuống đây nữa, chỉ để câu chúc mừng
+                        resultDiv.innerHTML = `🎉 Chúc mừng trúng: <span style="color: var(--color-gold); font-size: 16px;">${prizes[prizeIndex]}</span>!`;
                         resultDiv.style.opacity = "1";
                     }
                     
-                    // Cập nhật lại số tiền thật từ API cho chuẩn
                     currentXu = d.new_xu;
                     document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
                     document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
@@ -490,7 +474,6 @@ if (btnSpin) {
                 }, 4000);
             }
         } catch(e) { 
-            console.error("Lỗi API Vòng quay:", e); 
             showToast("❌ Mất kết nối đến server, ko thể quay!");
             isSpinning = false;
             btnSpin.innerHTML = "<i class='fa-solid fa-rotate-right'></i> QUAY";
@@ -589,7 +572,6 @@ if (btnShareLink) {
 }
 
 // ================= LOGIC ĐIỂM DANH HÀNG NGÀY =================
-// ================= LOGIC ĐIỂM DANH HÀNG NGÀY =================
 const btnDailyAttendance = document.getElementById("btn-daily-attendance");
 const inlineAttendanceContainer = document.getElementById("inline-attendance-container");
 const btnBackAttendance = document.getElementById("btn-back-attendance");
@@ -613,47 +595,9 @@ if (btnBackAttendance) {
 
 if (btnDoAttendance) {
     btnDoAttendance.addEventListener("click", () => {
-
-        if(d.success) {
-                    hasAttendedToday = true;
-                    btnDoAttendance.innerHTML = "<i class='fa-solid fa-check'></i> ĐÃ ĐIỂM DANH";
-                    btnDoAttendance.style.opacity = "0.7";
-                    
-                    // Cập nhật lại UI cho thẻ ngày hôm nay
-                    const todayDay = new Date().getDay(); 
-                    const currentDayLi = document.querySelector(`#attendance-list li[data-day="${todayDay}"]`);
-                    if (currentDayLi) {
-                        const statusIcon = currentDayLi.querySelector(".status-icon");
-                        if (statusIcon) statusIcon.innerHTML = "<i class='fa-solid fa-circle-check' style='color: var(--color-mint); margin-left: 8px; font-size: 16px;'></i>";
-                        currentDayLi.style.background = "rgba(52, 211, 153, 0.1)";
-                        currentDayLi.style.borderRadius = "8px";
-                        currentDayLi.style.padding = "8px";
-                        currentDayLi.style.borderBottom = "none";
-                    }
-
-                    // Cập nhật tiến độ
-                    const progressEl = document.getElementById("attendance-progress");
-                    if (progressEl) progressEl.innerText = `${d.streak}/7`;
-
-                    currentXu = d.new_xu;
-                    document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
-                    document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
-                    
-                    const lvl = document.getElementById("user-level").innerText;
-                    if(!lvl.includes("20") && !lvl.includes("MAX")) {
-                        document.getElementById("user-exp").innerText = `${d.new_exp}/${d.exp_required}`;
-                    }
-                    
-                    // Thông báo thưởng cực gắt nếu đủ chuỗi 7 ngày
-                    if (d.is_weekly) {
-                        showToast(`🎉 ĐỈNH CHÓP! Điểm danh đủ 7 ngày. Húp trọn ${d.reward_xu.toLocaleString()} Xu & ${d.reward_exp} EXP!`);
-                    } else {
-                        showToast(`🎉 Điểm danh thành công! Ông nhận đc ${d.reward_xu} Xu & ${d.reward_exp} EXP.`);
-                    }
-                }
-
+        // Kiểm tra xem đã điểm danh hôm nay chưa
         if (hasAttendedToday) {
-            showToast("Hôm nay bạn đã điểm danh rồi! Hãy quay lại vào ngày mai nhé.");
+            showToast("Hôm nay ông đã điểm danh rồi! Hãy quay lại vào ngày mai nhé.");
             return;
         }
 
@@ -680,8 +624,9 @@ if (btnDoAttendance) {
                     btnDoAttendance.innerHTML = "<i class='fa-solid fa-check'></i> ĐÃ ĐIỂM DANH";
                     btnDoAttendance.style.opacity = "0.7";
                     
-                    const today = new Date().getDay(); 
-                    const currentDayLi = document.querySelector(`#attendance-list li[data-day="${today}"]`);
+                    // Cập nhật lại UI cho thẻ ngày hôm nay
+                    const todayDay = new Date().getDay(); 
+                    const currentDayLi = document.querySelector(`#attendance-list li[data-day="${todayDay}"]`);
                     if (currentDayLi) {
                         const statusIcon = currentDayLi.querySelector(".status-icon");
                         if (statusIcon) statusIcon.innerHTML = "<i class='fa-solid fa-circle-check' style='color: var(--color-mint); margin-left: 8px; font-size: 16px;'></i>";
@@ -690,6 +635,10 @@ if (btnDoAttendance) {
                         currentDayLi.style.padding = "8px";
                         currentDayLi.style.borderBottom = "none";
                     }
+
+                    // Cập nhật tiến độ điểm danh
+                    const progressEl = document.getElementById("attendance-progress");
+                    if (progressEl) progressEl.innerText = `${d.streak}/7`;
 
                     // Cập nhật số dư
                     currentXu = d.new_xu;
@@ -700,7 +649,13 @@ if (btnDoAttendance) {
                     if(!lvl.includes("20") && !lvl.includes("MAX")) {
                         document.getElementById("user-exp").innerText = `${d.new_exp}/${d.exp_required}`;
                     }
-                    showToast(`🎉 Điểm danh thành công! Ông nhận được ${d.reward_xu} Xu và ${d.reward_exp} EXP.`);
+                    
+                    // Thông báo thưởng (tùy thuộc vào việc có đủ 7 ngày hay không)
+                    if (d.is_weekly) {
+                        showToast(`🎉 ĐỈNH CHÓP! Điểm danh đủ 7 ngày. Húp trọn ${d.reward_xu.toLocaleString()} Xu & ${d.reward_exp} EXP!`);
+                    } else {
+                        showToast(`🎉 Điểm danh thành công! Ông nhận đc ${d.reward_xu} Xu & ${d.reward_exp} EXP.`);
+                    }
                 } else if (d.error) {
                     showToast("❌ " + d.error);
                     btnDoAttendance.innerHTML = "<i class='fa-solid fa-pen-to-square'></i> ĐIỂM DANH NGAY";
