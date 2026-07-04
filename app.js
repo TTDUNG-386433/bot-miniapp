@@ -257,16 +257,14 @@ function switchTab(tabId) {
     if(idx !== -1) document.querySelectorAll('.nav-item')[idx].classList.add('active');
 }
 
-// ================= ADSGRAM INTEGRATION =================
 const AdController = window.Adsgram.init({ blockId: "36819" });
 const watchAdBtn = document.getElementById("btn-watch-ad");
 
-// Hàm xử lý hồi chiêu 20s
-function startAdCooldown(btn) {
-    let timeLeft = 20;
+// Hàm xử lý hồi chiêu động
+function startAdCooldown(btn, seconds = 20, defaultText = "") {
+    let timeLeft = seconds;
     btn.disabled = true;
     
-    // Đổi màu nền sang xám cho giống trạng thái đang khóa
     const originalBg = btn.style.background;
     btn.style.background = "#475569"; 
     btn.innerHTML = `<i class='fa-solid fa-clock'></i> CHỜ ${timeLeft}S...`;
@@ -276,8 +274,8 @@ function startAdCooldown(btn) {
         if (timeLeft <= 0) {
             clearInterval(cooldownTimer);
             btn.disabled = false;
-            btn.innerHTML = "<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO";
-            btn.style.background = originalBg; // Trả lại màu cam gốc
+            btn.innerHTML = defaultText; 
+            btn.style.background = originalBg; 
         } else {
             btn.innerHTML = `<i class='fa-solid fa-clock'></i> CHỜ ${timeLeft}S...`;
         }
@@ -332,10 +330,13 @@ if (watchAdBtn) {
             startAdCooldown(watchAdBtn);
 
         }).catch((error) => {
-            showToast("❌ Bạn tắt quảng cáo sớm quá nên chưa đc nhận thưởng đâu nha!");
-            
-            // Nếu hủy xem giữa chừng cũng bắt đợi hồi chiêu luôn để hạn chế spam click
-            startAdCooldown(watchAdBtn);
+            if (error?.description === 'No ads' || error?.error === 'no_ads' || error?.error === 'ad_not_filled') {
+                showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
+                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> XEM QUẢNG CÁO");
+            } else {
+                showToast("❌ Bạn tắt quảng cáo sớm nên chưa được nhận thưởng đâu nha!", "error");
+                startAdCooldown(watchAdBtn, 20, "<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO ");
+            }
         });
     });
 }
@@ -370,7 +371,7 @@ if (btnActivate) {
                 if (data.error) {
                     showToast(data.error);
                     // Nếu lỗi (vd: chưa tới ngày mới), trả lại nút
-                    btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
+                    btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO";
                     btnActivate.disabled = false;
                 } else if (data.success) {
                     showToast("🎉 Xem quảng cáo thành công! Máy đào đã chạy.");
@@ -380,15 +381,19 @@ if (btnActivate) {
             } catch (err) {
                 console.error("Lỗi API Kích hoạt:", err);
                 showToast("❌ Lỗi kết nối đến server máy chủ!");
-                btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
+                btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO ";
                 btnActivate.disabled = false;
             }
 
         }).catch((error) => {
-            // Trường hợp user ấn tắt quảng cáo giữa chừng hoặc lỗi load ads
+            if (error?.description === 'No ads' || error?.error === 'no_ads' || error?.error === 'ad_not_filled') {
+                showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
+                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> KÍCH HOẠT ĐÀO");
+            } else {
             showToast("❌ Bạn chưa xem xong quảng cáo hoặc lỗi mạng. Kích hoạt bị hủy!");
-            btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
+            btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO";
             btnActivate.disabled = false;
+            }
         });
     });
 }
@@ -692,10 +697,14 @@ if (btnDoAttendance) {
             }
 
         }).catch((error) => {
-            // Trường hợp user tắt ngang quảng cáo
+            if (error?.description === 'No ads' || error?.error === 'no_ads' || error?.error === 'ad_not_filled') {
+                showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
+                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> ĐIỂM DANH NGAY");
+            } else {
             showToast("❌ Bạn chưa xem hết quảng cáo nên không thể điểm danh nhé!");
             btnDoAttendance.innerHTML = "<i class='fa-solid fa-pen-to-square'></i> ĐIỂM DANH NGAY";
             btnDoAttendance.disabled = false;
+            }
         });
     });
 }
@@ -1026,12 +1035,15 @@ if (btnUpgrade) {
                 btnUpgrade.disabled = false;
             }
 
-        }).catch((error) => {
+        }).catch((error) => {if (error?.description === 'No ads' || error?.error === 'no_ads' || error?.error === 'ad_not_filled') {
+                showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
+                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> ĐIỂM DANH NGAY");
+            } else {
             showToast("⚠️ Hiện đang hết video quảng cáo vui lòng thử lại sau.", "error");
-            
             const nextLvl = document.getElementById("next-level-display").innerText;
             btnUpgrade.innerHTML = `<i class="fa-solid fa-level-up-alt fa-bounce"></i> NÂNG CẤP LÊN LV <span id="next-level-display">${nextLvl}</span>`;
             btnUpgrade.disabled = false;
+            }
         });
     });
 }
@@ -1086,10 +1098,14 @@ if (btnClaimWeekly) {
                 btnClaimWeekly.disabled = false;
             }
         }).catch((error) => {
-            // Trường hợp user tắt ngang quảng cáo chưa xem hết
+            if (error?.description === 'No ads' || error?.error === 'no_ads' || error?.error === 'ad_not_filled') {
+                showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
+                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> ĐIỂM DANH NGAY");
+            } else {
             showToast("❌ Bạn chưa xem hết quảng cáo nên rương bị khóa lại nhé!");
             btnClaimWeekly.innerHTML = "<i class='fa-solid fa-unlock fa-bounce'></i> NHẬN RƯƠNG THƯỞNG";
             btnClaimWeekly.disabled = false;
+            }
         });
     });
 }
@@ -1181,10 +1197,14 @@ if (btnSubmitGiftcode) {
             }
 
         }).catch((error) => {
-            // Trường hợp user tắt ngang quảng cáo ko chịu xem hết
+            if (error?.description === 'No ads' || error?.error === 'no_ads' || error?.error === 'ad_not_filled') {
+                showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
+                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> ĐIỂM DANH NGAY");
+            } else {
             showToast("❌ Bạn chưa xem hết quảng cáo nên mã bị hủy rồi nhé!", "error");
             btnSubmitGiftcode.innerHTML = "<i class='fa-solid fa-check-circle'></i> XÁC NHẬN MÃ";
             btnSubmitGiftcode.disabled = false;
+            }
         });
     });
 }
