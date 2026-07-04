@@ -104,8 +104,9 @@ async function loadRealData() {
         
         // 2. Đồng bộ số liệu nhiệm vụ để tính lượt quay cho Vòng Quay
         const completedLinksCount = data.tasks.filter(t => t.completed).length;
-        document.getElementById("display-links").innerText = completedLinksCount;
-        userLinksCompleted = completedLinksCount; // Gán vào biến vòng quay
+        const displayLinksEl = document.getElementById("display-links");
+        if (displayLinksEl) displayLinksEl.innerText = completedLinksCount;
+        userLinksCompleted = completedLinksCount; 
         
         // 3. Chạy đếm ngược máy đào realtime
         startMiningTimer(data.user.mining_end_time);
@@ -121,6 +122,13 @@ async function loadRealData() {
 
         // 6. Đổ dữ liệu điểm danh và tiến độ tuần
         if (data.attendance_status) {
+            hasAttendedToday = data.has_attended_today;
+            const btnDoAttendance = document.getElementById("btn-do-attendance");
+            if (hasAttendedToday && btnDoAttendance) {
+                btnDoAttendance.innerHTML = "<i class='fa-solid fa-check'></i> ĐÃ ĐIỂM DANH";
+                btnDoAttendance.style.opacity = "0.7";
+                btnDoAttendance.disabled = true; // Khóa ko cho bấm lại
+            }
             let attendedCount = 0;
             // Map từ Python (0=T2, 6=CN) sang HTML data-day (1=T2, 0=CN)
             const daysMap = [1, 2, 3, 4, 5, 6, 0]; 
@@ -182,7 +190,7 @@ function startMiningTimer(endTimeStr) {
         return;
     }
     
-    const safeDateStr = endTimeStr.replace(" ", "T"); 
+    const safeDateStr = endTimeStr.replace(" ", "T") + "+07:00";
     const endTime = new Date(safeDateStr).getTime();
     let distance = endTime - new Date().getTime();
     
