@@ -360,21 +360,6 @@ button:active {
     50% { border-color: #34d399; box-shadow: 0 4px 25px rgba(52, 211, 153, 0.15); }
 }
 
-/* Giao diện danh sách link nhiệm vụ */
-.task-list-container {
-    margin-top: 16px;
-    margin-bottom: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-/* Giao diện danh sách link tối giản */
-.task-list-container {
-    margin-top: 20px;
-    margin-bottom: 20px;
-}
-
 .simple-task-item {
     margin-bottom: 24px; /* Tạo khoảng trống giữa các cụm Link */
     text-align: left;

@@ -1,7 +1,8 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-const API_URL = "https://irritant-dwarf-starlit.ngrok-free.dev/api/data";
+const BASE_URL = "https://irritant-dwarf-starlit.ngrok-free.dev"; 
+const API_URL = `${BASE_URL}/api/data`;
 const userId = tg.initDataUnsafe?.user?.id || 0; 
 
 let miningInterval;
@@ -59,7 +60,7 @@ function checkLevelUp(exp, exp_required, level) {
 // ================= HÀM KẾT NỐI API LẤY DATA THẬT =================
 async function loadRealData() {
     if (!userId) {
-        showToast("Ko lấy đc ID Telegram từ WebApp!");
+        showToast("Ko lấy được ID Telegram từ WebApp!");
         return;
     }
     
@@ -79,8 +80,7 @@ async function loadRealData() {
         currentXu = data.user.xu;
         miningSpeed = data.user.speed;
         fractionalXu = 0;
-
-        // Thay đoạn hiển thị vé cũ thành đoạn này
+        totalLinksCompleted = data.user.total_links || 0;
         extraSpins = data.user.extra_spins || 0;
         let freeTickets = data.user.free_tickets || 0;
         dailySpins = data.user.daily_spins || 0;
@@ -170,36 +170,31 @@ function startMiningTimer(endTimeStr) {
     const timeElement = document.getElementById("mining-time");
     const btnActivate = document.getElementById("btn-activate-mining");
 
-    // Nếu ko có thời gian hoặc đang dừng
     if (!endTimeStr || endTimeStr === "None") {
         timeElement.innerText = "00:00:00 (Đang dừng)";
         timeElement.classList.add("time-stopped");
-        
-        // Mở khóa lại nút kích hoạt
         if (btnActivate) {
             btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO";
             btnActivate.disabled = false;
             btnActivate.style.opacity = "1";
-            btnActivate.classList.remove("btn-gray"); // Bỏ màu xám (nếu có)
+            btnActivate.classList.remove("btn-gray");
         }
         return;
     }
     
-    // Khắc phục lệch định dạng múi giờ giữa Python và JS
     const safeDateStr = endTimeStr.replace(" ", "T"); 
     const endTime = new Date(safeDateStr).getTime();
+    let distance = endTime - new Date().getTime();
     
     clearInterval(miningInterval);
     miningInterval = setInterval(() => {
-        const distance = endTime - new Date().getTime();
+        distance -= 1000;
         
-        // HẾT GIỜ ĐÀO
         if (distance <= 0) {
             clearInterval(miningInterval);
             timeElement.innerText = "00:00:00 (Đang dừng)";
             timeElement.classList.add("time-stopped");
             
-            // Trả lại nút kích hoạt
             if (btnActivate) {
                 btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
                 btnActivate.disabled = false;
@@ -208,12 +203,11 @@ function startMiningTimer(endTimeStr) {
             return;
         }
         
-        // ĐANG TRONG THỜI GIAN ĐÀO
         if (btnActivate) {
             btnActivate.innerHTML = "<i class='fa-solid fa-hammer fa-bounce'></i> ĐANG ĐÀO...";
             btnActivate.disabled = true;
             btnActivate.style.opacity = "0.7";
-            btnActivate.style.background = "#475569"; // Đổi sang màu xám cho đúng chuẩn nút đang bị vô hiệu hóa
+            btnActivate.style.background = "#475569"; 
         }
 
         timeElement.classList.remove("time-stopped");
@@ -223,17 +217,15 @@ function startMiningTimer(endTimeStr) {
         
         timeElement.innerText = `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
         
-        // LOGIC TĂNG XU REALTIME
         if (miningSpeed > 0) {
-            fractionalXu += miningSpeed / 3600; // Tốc độ chia cho 3600 giây
+            fractionalXu += miningSpeed / 3600; 
             if (fractionalXu >= 1) {
                 const addXu = Math.floor(fractionalXu);
                 currentXu += addXu;
-                fractionalXu -= addXu; // Giữ lại phần lẻ
+                fractionalXu -= addXu; 
                 
-                // Cập nhật giao diện
                 document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
-                document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString(); // RATE = 100
+                document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString(); 
             }
         }
     }, 1000);
@@ -277,13 +269,13 @@ if (watchAdBtn) {
 
             try {
                 // Gọi API nhận thưởng
-                const adUrl = API_URL.replace('/api/data', '/api/watch_ad');
-                const response = await fetch(adUrl, {
+               const adUrl = `${BASE_URL}/api/watch_ad`; 
+               const res = await fetch(adUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
                     body: JSON.stringify({ initData: tg.initData }) 
                 });
-                const data = await response.json();
+                const data = await res.json();
 
                 if (data.success) {
                     currentXu = data.new_xu;
@@ -305,7 +297,7 @@ if (watchAdBtn) {
                 }
             } catch (err) {
                 console.error("Lỗi API Ads:", err);
-                showToast("❌ Có lỗi mạng khi cộng thưởng, ông check lại đường truyền nhé!");
+                showToast("❌ Có lỗi mạng khi cộng thưởng, bạn kiểm tra lại đường truyền nhé!");
             }
 
             // Khôi phục nút bấm
@@ -313,7 +305,7 @@ if (watchAdBtn) {
             watchAdBtn.disabled = false;
 
         }).catch((error) => {
-            showToast("❌ Ông tắt quảng cáo sớm quá nên chưa đc nhận thưởng đâu nha!");
+            showToast("❌ Bạn tắt quảng cáo sớm quá nên chưa được nhận thưởng đâu nha!");
             watchAdBtn.innerHTML = "<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO";
             watchAdBtn.disabled = false;
         });
@@ -339,13 +331,13 @@ if (btnActivate) {
             
             try {
                 // Link API claim_free mà tôi đã hướng dẫn ông làm lúc trước
-                const claimUrl = API_URL.replace('/api/data', '/api/claim_free');
-                const response = await fetch(claimUrl, {
+                const upgUrl = `${BASE_URL}/api/claim_free`;
+                const res = await fetch(upgUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
                     body: JSON.stringify({ initData: tg.initData })
                 });
-                const data = await response.json();
+                const data = await res.json();
                 
                 if (data.error) {
                     showToast(data.error);
@@ -366,7 +358,7 @@ if (btnActivate) {
 
         }).catch((error) => {
             // Trường hợp user ấn tắt quảng cáo giữa chừng hoặc lỗi load ads
-            showToast("❌ Ông chưa xem xong quảng cáo hoặc lỗi mạng. Kích hoạt bị hủy!");
+            showToast("❌ Bạn chưa xem xong quảng cáo hoặc lỗi mạng. Kích hoạt bị hủy!");
             btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
             btnActivate.disabled = false;
         });
@@ -407,17 +399,19 @@ if (btnBackUtils) {
 }
 
 if (btnSpin) {
-    // ĐỔI THÀNH async VÌ PHẢI GỌI API TRƯỚC
     btnSpin.addEventListener("click", async () => {
         if (isSpinning) return;
 
         btnSpin.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG KẾT NỐI...";
         btnSpin.style.opacity = "0.7";
+        btnSpin.disabled = true; // Khóa luôn nút trên DOM
         isSpinning = true;
 
+        let isSuccess = false; // Cờ kiểm tra quay thành công
+
         try {
-            const wheelUrl = API_URL.replace('/api/data', '/api/wheel');
-            const res = await fetch(wheelUrl, {
+            const upgUrl = `${BASE_URL}/api/wheel`;
+            const res = await fetch(upgUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
                 body: JSON.stringify({ initData: tg.initData }) 
@@ -425,14 +419,13 @@ if (btnSpin) {
             const d = await res.json();
 
             if (d.error) {
-                showToast("❌ " + d.error);
-                isSpinning = false;
-                btnSpin.innerHTML = "<i class='fa-solid fa-rotate-right'></i> QUAY";
-                btnSpin.style.opacity = "1";
-                return;
+                showToast("❌ " + d.error, "error");
+                return; // Nhảy thẳng xuống finally
             }
 
             if(d.success) {
+                isSuccess = true; // Đánh dấu đã gọi API thành công
+                
                 // Cập nhật lại UI đếm vé từ Backend phản hồi
                 dailySpins = d.daily_spins;
                 extraSpins = d.extra_spins;
@@ -452,13 +445,14 @@ if (btnSpin) {
                 btnSpin.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG QUAY...";
                 wheel.style.transform = `rotate(${currentRotation}deg)`;
                 
+                // Set timeout chờ animation 4s
                 setTimeout(() => {
                     isSpinning = false;
+                    btnSpin.disabled = false; // Nhả DOM
                     btnSpin.innerHTML = "<i class='fa-solid fa-rotate-right'></i> QUAY";
                     btnSpin.style.opacity = "1";
                     
                     if(resultDiv) {
-                        // FIX BUG 2: Ko nhét "Lượt quay hôm nay" xuống đây nữa, chỉ để câu chúc mừng
                         resultDiv.innerHTML = `🎉 Chúc mừng trúng: <span style="color: var(--color-gold); font-size: 16px;">${prizes[prizeIndex]}</span>!`;
                         resultDiv.style.opacity = "1";
                     }
@@ -474,10 +468,14 @@ if (btnSpin) {
                 }, 4000);
             }
         } catch(e) { 
-            showToast("❌ Mất kết nối đến server, ko thể quay!");
-            isSpinning = false;
-            btnSpin.innerHTML = "<i class='fa-solid fa-rotate-right'></i> QUAY";
-            btnSpin.style.opacity = "1";
+            showToast("❌ Mất kết nối đến server, không thể quay!", "error");
+        } finally {
+            if (!isSuccess) {
+                isSpinning = false;
+                btnSpin.disabled = false;
+                btnSpin.innerHTML = "<i class='fa-solid fa-rotate-right'></i> QUAY";
+                btnSpin.style.opacity = "1";
+            }
         }
     });
 }
@@ -520,9 +518,7 @@ function renderLeaderboard(leaderboardData) {
 }
 
 if (btnLeaderboard) {
-    const newBtnLeaderboard = btnLeaderboard.cloneNode(true);
-    btnLeaderboard.parentNode.replaceChild(newBtnLeaderboard, btnLeaderboard);
-    newBtnLeaderboard.addEventListener("click", () => {
+    btnLeaderboard.addEventListener("click", () => {
         utilsButtonsContainer.style.display = "none";
         inlineLeaderboardContainer.style.display = "block";
     });
@@ -544,10 +540,9 @@ const invitedCountDisplay = document.getElementById("invited-count");
 
 let invitedCount = 0; 
 
+// Gắn event trực tiếp, sạch sẽ
 if (btnInvite) {
-    const newBtnInvite = btnInvite.cloneNode(true);
-    btnInvite.parentNode.replaceChild(newBtnInvite, btnInvite);
-    newBtnInvite.addEventListener("click", () => {
+    btnInvite.addEventListener("click", () => {
         if (invitedCountDisplay) invitedCountDisplay.innerText = invitedCount;
         utilsButtonsContainer.style.display = "none";
         inlineInviteContainer.style.display = "block";
@@ -597,7 +592,7 @@ if (btnDoAttendance) {
     btnDoAttendance.addEventListener("click", () => {
         // Kiểm tra xem đã điểm danh hôm nay chưa
         if (hasAttendedToday) {
-            showToast("Hôm nay ông đã điểm danh rồi! Hãy quay lại vào ngày mai nhé.");
+            showToast("Hôm nay bạn đã điểm danh rồi! Hãy quay lại vào ngày mai nhé.");
             return;
         }
 
@@ -611,8 +606,8 @@ if (btnDoAttendance) {
             btnDoAttendance.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG ĐIỂM DANH...";
             
             try {
-                const attUrl = API_URL.replace('/api/data', '/api/attendance');
-                const res = await fetch(attUrl, {
+                const upgUrl = `${BASE_URL}/api/attendance`;
+                const res = await fetch(upgUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
                     body: JSON.stringify({ initData: tg.initData })
@@ -654,7 +649,7 @@ if (btnDoAttendance) {
                     if (d.is_weekly) {
                         showToast(`🎉 ĐỈNH CHÓP! Điểm danh đủ 7 ngày. Húp trọn ${d.reward_xu.toLocaleString()} Xu & ${d.reward_exp} EXP!`);
                     } else {
-                        showToast(`🎉 Điểm danh thành công! Ông nhận đc ${d.reward_xu} Xu & ${d.reward_exp} EXP.`);
+                        showToast(`🎉 Điểm danh thành công! Bạn nhận được ${d.reward_xu} Xu & ${d.reward_exp} EXP.`);
                     }
                 } else if (d.error) {
                     showToast("❌ " + d.error);
@@ -670,7 +665,7 @@ if (btnDoAttendance) {
 
         }).catch((error) => {
             // Trường hợp user tắt ngang quảng cáo
-            showToast("❌ Ông chưa xem hết quảng cáo nên không thể điểm danh nhé!");
+            showToast("❌ Bạn chưa xem hết quảng cáo nên không thể điểm danh nhé!");
             btnDoAttendance.innerHTML = "<i class='fa-solid fa-pen-to-square'></i> ĐIỂM DANH NGAY";
             btnDoAttendance.disabled = false;
         });
@@ -776,8 +771,8 @@ if (btnSubmitBank) {
         btnSubmitBank.disabled = true;
 
         try {
-            const wdUrl = API_URL.replace('/api/data', '/api/withdraw');
-            const res = await fetch(wdUrl, {
+            const upgUrl = `${BASE_URL}/api/withdraw`;
+            const res = await fetch(upgUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
                 body: JSON.stringify({
@@ -798,7 +793,7 @@ if (btnSubmitBank) {
                 document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
                 document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
                 
-                showToast("✅ Lệnh rút đã được gửi! Admin đang xem xét duyệt, ông chú ý check tin nhắn bot nhé.");
+                showToast("✅ Lệnh rút đã được gửi! Admin đang xem xét duyệt, bạn chú ý check tin nhắn bot nhé.");
                 
                 // Trả về màn hình chọn phương thức & Xóa trắng form
                 wdFormBank.style.display = "none";
@@ -838,7 +833,7 @@ if (btnSubmitMomo) {
         btnSubmitMomo.disabled = true;
 
         try {
-            const wdUrl = API_URL.replace('/api/data', '/api/withdraw');
+            const wdUrl = `${BASE_URL}/api/withdraw`;
             const res = await fetch(wdUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
@@ -859,7 +854,7 @@ if (btnSubmitMomo) {
                 document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
                 document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
                 
-                showToast("✅ Lệnh rút đã được gửi! Admin đang xem xét duyệt, ông chú ý check tin nhắn bot nhé.");
+                showToast("✅ Lệnh rút đã được gửi! Admin đang xem xét duyệt, bạn chú ý check tin nhắn bot nhé.");
                 
                 wdFormMomo.style.display = "none";
                 wdMethodContainer.style.display = "block";
@@ -899,7 +894,7 @@ async function syncData() {
         });
 
         if (newlyCompleted > 0) {
-            totalLinksCompleted += newlyCompleted;
+            totalLinksCompleted = data.user.total_links;
             showToast(`🎉 Bạn vượt thành công ${newlyCompleted} Link. Phần thưởng Xu và EXP đã được cộng vào ví!`);
             
             currentXu = data.user.xu;
@@ -958,7 +953,7 @@ setTimeout(() => {
 const btnUpgrade = document.getElementById("btn-upgrade-level");
 if (btnUpgrade) {
     btnUpgrade.addEventListener("click", async () => {
-        const requiredLinks = currentLevel * 5;
+        const requiredLinks = currentLevel * 10;
         if (totalLinksCompleted < requiredLinks) {
             showToast(`⚠️ Chưa thể nâng cấp do chưa đủ số link vượt (Cần ${requiredLinks} link, bạn mới có ${totalLinksCompleted}). Bạn vượt link xong rồi nâng cấp.`, "error");
             return;
@@ -971,7 +966,7 @@ if (btnUpgrade) {
             btnUpgrade.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG NÂNG CẤP...";
 
             try {
-                const upgUrl = API_URL.replace('/api/data', '/api/upgrade');
+                const upgUrl = `${BASE_URL}/api/upgrade`;
                 const res = await fetch(upgUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
@@ -1027,8 +1022,8 @@ if (btnClaimWeekly) {
             btnClaimWeekly.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG MỞ RƯƠNG...";
 
             try {
-                const claimUrl = API_URL.replace('/api/data', '/api/claim_weekly');
-                const res = await fetch(claimUrl, {
+                const upgUrl = `${BASE_URL}/api/claim_weekly`;
+                const res = await fetch(upgUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
                     body: JSON.stringify({ initData: tg.initData })
@@ -1064,7 +1059,7 @@ if (btnClaimWeekly) {
             }
         }).catch((error) => {
             // Trường hợp user tắt ngang quảng cáo chưa xem hết
-            showToast("❌ Ông chưa xem hết quảng cáo nên rương bị khóa lại nhé!");
+            showToast("❌ Bạn chưa xem hết quảng cáo nên rương bị khóa lại nhé!");
             btnClaimWeekly.innerHTML = "<i class='fa-solid fa-unlock fa-bounce'></i> NHẬN RƯƠNG THƯỞNG";
             btnClaimWeekly.disabled = false;
         });
