@@ -91,6 +91,9 @@
                     <button id="btn-daily-attendance" class="btn-pink" style="margin-top: 12px;"><i class="fa-solid fa-calendar-check"></i> 📅 ĐIỂM DANH HẰNG NGÀY</button>
                     
                     <button id="btn-invite-friend" class="btn-mint" style="margin-top: 12px;"><i class="fa-solid fa-user-plus"></i> 👥 MỜI BẠN BÈ NHẬN THƯỞNG</button>
+                    <button id="btn-giftcode" class="btn-primary" style="margin-top: 12px; background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); box-shadow: 0 4px 14px rgba(244, 63, 94, 0.3);">
+                        <i class="fa-solid fa-gift fa-bounce"></i> 🎁 NHẬP MÃ GIFT CODE
+                    </button>
                 </div>
 
                 <div id="inline-wheel-container" style="display: none; text-align: center;">
@@ -220,6 +223,26 @@
                     </div>
 
                     <button id="btn-share-link" class="btn-mint" style="font-size: 16px;"><i class="fa-solid fa-share-nodes"></i> CHIA SẺ LIÊN KẾT NGAY</button>
+                </div>
+
+                <div id="inline-giftcode-container" style="display: none; text-align: center;">
+                    <div style="margin-bottom: 25px;">
+                        <div style="text-align: left; margin-bottom: 15px;">
+                            <button id="btn-back-giftcode" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px; box-shadow: none;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+                        </div>
+                        <h3 style="margin-bottom: 0; color: #f43f5e; justify-content: center;"><i class="fa-solid fa-gift"></i> MÃ QUÀ TẶNG</h3>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 25px 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.08);">
+                        <div style="font-size: 13px; color: var(--text-main); line-height: 1.5; margin-bottom: 15px;">
+                            Nhập mã Gift Code từ sự kiện hoặc Admin để nhận ngay Xu và EXP!
+                        </div>
+                        <input type="text" id="input-giftcode" class="input-field" placeholder="Nhập mã vào đây..." style="text-align: center; font-weight: bold; font-size: 16px; text-transform: uppercase;">
+                    </div>
+
+                    <button id="btn-submit-giftcode" class="btn-primary" style="background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); font-size: 16px;">
+                        <i class="fa-solid fa-check-circle"></i> XÁC NHẬN MÃ
+                    </button>
                 </div>
                 
             </div>

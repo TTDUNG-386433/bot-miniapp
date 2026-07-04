@@ -261,6 +261,29 @@ function switchTab(tabId) {
 const AdController = window.Adsgram.init({ blockId: "36819" });
 const watchAdBtn = document.getElementById("btn-watch-ad");
 
+// Hàm xử lý hồi chiêu 20s
+function startAdCooldown(btn) {
+    let timeLeft = 20;
+    btn.disabled = true;
+    
+    // Đổi màu nền sang xám cho giống trạng thái đang khóa
+    const originalBg = btn.style.background;
+    btn.style.background = "#475569"; 
+    btn.innerHTML = `<i class='fa-solid fa-clock'></i> CHỜ ${timeLeft}S...`;
+
+    const cooldownTimer = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+            clearInterval(cooldownTimer);
+            btn.disabled = false;
+            btn.innerHTML = "<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO";
+            btn.style.background = originalBg; // Trả lại màu cam gốc
+        } else {
+            btn.innerHTML = `<i class='fa-solid fa-clock'></i> CHỜ ${timeLeft}S...`;
+        }
+    }, 1000);
+}
+
 if (watchAdBtn) {
     watchAdBtn.addEventListener("click", () => {
         watchAdBtn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
@@ -272,13 +295,11 @@ if (watchAdBtn) {
             const displayAdsEl = document.getElementById("display-ads");
             if (displayAdsEl) displayAdsEl.innerText = userAdsWatched;
 
-            // Báo hiệu đang chờ server xử lý cộng tiền
             watchAdBtn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG NHẬN THƯỞNG...";
 
             try {
-                // Gọi API nhận thưởng
-               const adUrl = `${BASE_URL}/api/watch_ad`; 
-               const res = await fetch(adUrl, {
+                const adUrl = `${BASE_URL}/api/watch_ad`; 
+                const res = await fetch(adUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
                     body: JSON.stringify({ initData: tg.initData }) 
@@ -295,27 +316,26 @@ if (watchAdBtn) {
                         document.getElementById("user-exp").innerText = `${data.new_exp}/${data.exp_required}`;
                     }
                     
-                    // Cập nhật lại UI hiển thị vé và Ads
                     let adCount = data.ad_count || 0;
                     let freeTickets = data.free_tickets || 0;
                     if(document.getElementById("display-ads-count")) document.getElementById("display-ads-count").innerText = adCount % 3;
                     if(document.getElementById("display-free-tickets")) document.getElementById("display-free-tickets").innerText = freeTickets;
 
-                    showToast(`🎉 Bạn vừa nhận được ${data.reward_xu} Xu và ${data.reward_exp} EXP.`);
+                    showToast(`🎉 Bạn vừa nhận đc ${data.reward_xu} Xu và ${data.reward_exp} EXP.`);
                 }
             } catch (err) {
                 console.error("Lỗi API Ads:", err);
                 showToast("❌ Có lỗi mạng khi cộng thưởng, bạn kiểm tra lại đường truyền nhé!");
             }
 
-            // Khôi phục nút bấm
-            watchAdBtn.innerHTML = "<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO";
-            watchAdBtn.disabled = false;
+            // Gọi hàm hồi chiêu 20s thay vì mở nút ngay
+            startAdCooldown(watchAdBtn);
 
         }).catch((error) => {
-            showToast("❌ Bạn tắt quảng cáo sớm quá nên chưa được nhận thưởng đâu nha!");
-            watchAdBtn.innerHTML = "<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO";
-            watchAdBtn.disabled = false;
+            showToast("❌ Bạn tắt quảng cáo sớm quá nên chưa đc nhận thưởng đâu nha!");
+            
+            // Nếu hủy xem giữa chừng cũng bắt đợi hồi chiêu luôn để hạn chế spam click
+            startAdCooldown(watchAdBtn);
         });
     });
 }
@@ -1071,5 +1091,75 @@ if (btnClaimWeekly) {
             btnClaimWeekly.innerHTML = "<i class='fa-solid fa-unlock fa-bounce'></i> NHẬN RƯƠNG THƯỞNG";
             btnClaimWeekly.disabled = false;
         });
+    });
+}
+
+// ================= LOGIC GIFT CODE =================
+const btnGiftcode = document.getElementById("btn-giftcode");
+const inlineGiftcodeContainer = document.getElementById("inline-giftcode-container");
+const btnBackGiftcode = document.getElementById("btn-back-giftcode");
+const btnSubmitGiftcode = document.getElementById("btn-submit-giftcode");
+const inputGiftcode = document.getElementById("input-giftcode");
+
+if (btnGiftcode) {
+    btnGiftcode.addEventListener("click", () => {
+        utilsButtonsContainer.style.display = "none";
+        inlineGiftcodeContainer.style.display = "block";
+    });
+}
+
+// Bấm nút quay lại
+if (btnBackGiftcode) {
+    btnBackGiftcode.addEventListener("click", () => {
+        inlineGiftcodeContainer.style.display = "none";
+        utilsButtonsContainer.style.display = "block";
+        inputGiftcode.value = ""; 
+    });
+}
+
+if (btnSubmitGiftcode) {
+    btnSubmitGiftcode.addEventListener("click", async () => {
+        const code = inputGiftcode.value.trim().toUpperCase(); 
+        
+        if (!code) {
+            return showToast("⚠️ Bạn chưa nhập mã Gift Code!", "error");
+        }
+
+        btnSubmitGiftcode.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG KIỂM TRA...";
+        btnSubmitGiftcode.disabled = true;
+
+        try {
+            const res = await fetch(`${BASE_URL}/api/giftcode`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
+                body: JSON.stringify({ initData: tg.initData, code: code })
+            });
+            const d = await res.json();
+
+            // Trả lại trạng thái nút
+            btnSubmitGiftcode.innerHTML = "<i class='fa-solid fa-check-circle'></i> XÁC NHẬN MÃ";
+            btnSubmitGiftcode.disabled = false;
+
+            if (d.error) {
+                showToast("❌ " + d.error, "error");
+            } else if (d.success) {
+                // Tiền về ví nhảy số
+                currentXu = d.new_xu;
+                document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
+                document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
+
+                const lvl = document.getElementById("user-level").innerText;
+                if(!lvl.includes("20") && !lvl.includes("MAX")) {
+                    document.getElementById("user-exp").innerText = `${d.new_exp}/${d.exp_required}`;
+                }
+
+                showToast(`🎉 Nhập mã thành công! Bạn nhận đc ${d.reward_xu.toLocaleString()} Xu & ${d.reward_exp} EXP.`, "success");
+                inputGiftcode.value = ""; // Dọn sạch ô input sau khi húp xong
+            }
+        } catch (err) {
+            btnSubmitGiftcode.innerHTML = "<i class='fa-solid fa-check-circle'></i> XÁC NHẬN MÃ";
+            btnSubmitGiftcode.disabled = false;
+            showToast("❌ Mất kết nối đến server, vui lòng thử lại!", "error");
+        }
     });
 }
