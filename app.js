@@ -1152,8 +1152,16 @@ if (btnSubmitGiftcode) {
                 if(!lvl.includes("20") && !lvl.includes("MAX")) {
                     document.getElementById("user-exp").innerText = `${d.new_exp}/${d.exp_required}`;
                 }
+                let rewardMsg = "";
+                if (d.reward_xu > 0 && d.reward_exp > 0) {
+                    rewardMsg = `${d.reward_xu.toLocaleString()} Xu & ${d.reward_exp} EXP`;
+                } else if (d.reward_xu > 0) {
+                    rewardMsg = `${d.reward_xu.toLocaleString()} Xu`;
+                } else if (d.reward_exp > 0) {
+                    rewardMsg = `${d.reward_exp} EXP`;
+                }
 
-                showToast(`🎉 Nhập mã thành công! Bạn nhận đc ${d.reward_xu.toLocaleString()} Xu & ${d.reward_exp} EXP.`, "success");
+                showToast(`🎉 Nhập mã thành công! Bạn nhận đc ${rewardMsg}.`, "success");
                 inputGiftcode.value = ""; // Dọn sạch ô input sau khi húp xong
             }
         } catch (err) {
