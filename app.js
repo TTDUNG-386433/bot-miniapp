@@ -85,7 +85,9 @@ async function loadRealData() {
         let freeTickets = data.user.free_tickets || 0;
         dailySpins = data.user.daily_spins || 0;
         let adCount = data.user.ad_count || 0;
+        userAdsWatched = adCount; 
 
+        if(document.getElementById("display-ads-watched")) document.getElementById("display-ads-watched").innerText = userAdsWatched;
         if(document.getElementById("display-extra-spins")) document.getElementById("display-extra-spins").innerText = extraSpins;
         if(document.getElementById("display-free-tickets")) document.getElementById("display-free-tickets").innerText = freeTickets;
         if(document.getElementById("display-daily-spins")) document.getElementById("display-daily-spins").innerText = `${dailySpins}/5`;
@@ -284,15 +286,14 @@ function startAdCooldown(btn, seconds = 20, defaultText = "") {
 
 if (watchAdBtn) {
     watchAdBtn.addEventListener("click", () => {
+        if (userAdsWatched >= 30) {
+            return showToast("⚠️ Bạn đã đạt giới hạn 30/30 lượt xem hôm nay!", "error");
+        }
+
         watchAdBtn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         watchAdBtn.disabled = true;
 
         AdController.show().then(async (result) => {
-            userAdsWatched++;
-            
-            const displayAdsEl = document.getElementById("display-ads");
-            if (displayAdsEl) displayAdsEl.innerText = userAdsWatched;
-
             watchAdBtn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG NHẬN THƯỞNG...";
 
             try {
@@ -304,7 +305,9 @@ if (watchAdBtn) {
                 });
                 const data = await res.json();
 
-                if (data.success) {
+                if (data.error) {
+                    showToast("❌ " + data.error, "error");
+                } else if (data.success) {
                     currentXu = data.new_xu;
                     document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
                     document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
@@ -315,6 +318,9 @@ if (watchAdBtn) {
                     }
                     
                     let adCount = data.ad_count || 0;
+                    userAdsWatched = adCount; 
+                    if(document.getElementById("display-ads-watched")) document.getElementById("display-ads-watched").innerText = userAdsWatched;
+                    
                     let freeTickets = data.free_tickets || 0;
                     if(document.getElementById("display-ads-count")) document.getElementById("display-ads-count").innerText = adCount % 3;
                     if(document.getElementById("display-free-tickets")) document.getElementById("display-free-tickets").innerText = freeTickets;
@@ -326,16 +332,18 @@ if (watchAdBtn) {
                 showToast("❌ Có lỗi mạng khi cộng thưởng, bạn kiểm tra lại đường truyền nhé!");
             }
 
-            // Gọi hàm hồi chiêu 20s thay vì mở nút ngay
-            startAdCooldown(watchAdBtn);
+            const btnText = `<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO (<span id="display-ads-watched">${userAdsWatched}</span>/30)`;
+            startAdCooldown(watchAdBtn, 20, btnText);
 
         }).catch((error) => {
+            const btnText = `<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO (<span id="display-ads-watched">${userAdsWatched}</span>/30)`;
+            
             if (error?.description === 'No ads' || error?.error === 'no_ads' || error?.error === 'ad_not_filled') {
-                showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
-                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> XEM QUẢNG CÁO");
+                showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Bạn đợi 20 giây rồi thử lại nhé!", "error");
+                startAdCooldown(watchAdBtn, 20, btnText);
             } else {
-                showToast("❌ Bạn tắt quảng cáo sớm nên chưa được nhận thưởng đâu nha!", "error");
-                startAdCooldown(watchAdBtn, 20, "<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO ");
+                showToast("❌ Bạn tắt quảng cáo sớm nên chưa đc nhận thưởng đâu nha!", "error");
+                startAdCooldown(watchAdBtn, 20, btnText);
             }
         });
     });
