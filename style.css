@@ -739,3 +739,9 @@ button:active {
 /* Màu của icon theo trạng thái */
 .custom-toast.success i { color: #34d399; }
 .custom-toast.error i { color: #f43f5e; }
+
+.btn-item-action {
+    white-space: nowrap; 
+    overflow: visible;  
+    flex-shrink: 0;    
+}

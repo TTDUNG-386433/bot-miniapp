@@ -28,11 +28,11 @@
                     <li><span class="label-text"><i class="fa-solid fa-medal"></i> Cấp độ:</span> <span id="user-level" class="val">Lv 20</span></li>
                     <li><span class="label-text"><i class="fa-solid fa-star"></i> EXP:</span> <span id="user-exp" class="val">MAX LEVEL</span></li>
                 </ul>
+                <p id="upgrade-cost-alert" style="display:none; color:#facc15; font-size:12px; margin-top:12px; font-weight:bold; text-align:center;"></p>
 
-                <button id="btn-upgrade-level" class="btn-mint" style="display: none; margin-top: 15px; font-size: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <button id="btn-upgrade-level" class="btn-mint" style="display: none; margin-top: 8px; font-size: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
                     <i class="fa-solid fa-level-up-alt fa-bounce"></i> NÂNG CẤP LÊN LV <span id="next-level-display"></span>
                 </button>
-
             </div>
 
             <div class="card">
@@ -40,6 +40,7 @@
                 <ul class="info-list">
                     <li><span class="label-text"><i class="fa-solid fa-gauge-high"></i> Tốc độ:</span> <span id="mining-speed" class="val">0 Xu/giờ</span></li>
                     <li><span class="label-text"><i class="fa-solid fa-clock"></i> Thời gian còn lại:</span> <span id="mining-time" class="val time-stopped">00:00:00 (Đang dừng)</span></li>
+                    <li><span class="label-text"><i class="fa-solid fa-bolt" style="color:#facc15;"></i> Thẻ x2 Đào:</span> <span id="buff-time" class="val" style="color: var(--text-muted); font-size: 13px;">Chưa kích hoạt</span></li>
                 </ul>
                 <button id="btn-activate-mining" class="btn-primary"><i class="fa-solid fa-gift"></i> KÍCH HOẠT ĐÀO </button>
             </div>
@@ -89,7 +90,7 @@
                         <button id="btn-leaderboard" class="btn-gold"><i class="fa-solid fa-trophy"></i> BẢNG XẾP HẠNG</button>
                     </div>
                     <button id="btn-daily-attendance" class="btn-pink" style="margin-top: 12px;"><i class="fa-solid fa-calendar-check"></i> 📅 ĐIỂM DANH HẰNG NGÀY</button>
-                    
+                    <button id="btn-open-inventory" class="btn-purple" style="margin-top: 12px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);"><i class="fa-solid fa-box-open"></i> 📦 KHO VẬT PHẨM COIN</button>
                     <button id="btn-invite-friend" class="btn-mint" style="margin-top: 12px;"><i class="fa-solid fa-user-plus"></i> 👥 MỜI BẠN BÈ NHẬN THƯỞNG</button>
                     <button id="btn-giftcode" class="btn-primary" style="margin-top: 12px; background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); box-shadow: 0 4px 14px rgba(244, 63, 94, 0.3);">
                         <i class="fa-solid fa-gift fa-bounce"></i> 🎁 NHẬP MÃ GIFT CODE
@@ -200,7 +201,11 @@
                     
                     <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.08);">
                         <ul class="info-list" id="leaderboard-list" style="text-align: left; margin-bottom: 0;">
-                            </ul>
+                        </ul>
+
+                        <div id="my-rank-info" style="margin-top: 15px; padding: 12px; background: rgba(52, 211, 153, 0.1); border: 1px dashed rgba(52, 211, 153, 0.4); border-radius: 10px; color: var(--color-mint); font-weight: bold; font-size: 14px;">
+                            Thứ hạng của bạn: Đang cập nhật...
+                        </div>
                     </div>
                 </div>
 
@@ -225,6 +230,7 @@
                     <button id="btn-share-link" class="btn-mint" style="font-size: 16px;"><i class="fa-solid fa-share-nodes"></i> CHIA SẺ LIÊN KẾT NGAY</button>
                 </div>
 
+                <!-- ================= KHU VỰC 5: GIFT CODE ================= -->
                 <div id="inline-giftcode-container" style="display: none; text-align: center;">
                     <div style="margin-bottom: 25px;">
                         <div style="text-align: left; margin-bottom: 15px;">
@@ -243,6 +249,56 @@
                     <button id="btn-submit-giftcode" class="btn-primary" style="background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); font-size: 16px;">
                         <i class="fa-solid fa-check-circle"></i> XÁC NHẬN MÃ
                     </button>
+                </div>
+
+                <!-- ================= KHU VỰC 6: KHO VẬT PHẨM (MỚI) ================= -->
+                <div id="inline-inventory-container" style="display: none; text-align: center;">
+                    <div style="margin-bottom: 20px;">
+                        <div style="text-align: left; margin-bottom: 15px;">
+                            <button id="btn-back-inventory" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2); color:#fff;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+                        </div>
+                        <h3 style="margin-bottom: 0; color: #34d399; justify-content: center;"><i class="fa-solid fa-box-open"></i> KHO VẬT PHẨM & CỬA HÀNG</h3>
+                    </div>
+
+                    <!-- Item 1 -->
+                    <div class="item-shop-card" style="background: rgba(255,255,255,0.04); border-radius:12px; padding:15px; margin-bottom:12px; border:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
+                        <div style="text-align:left; flex: 1; padding-right: 10px;">
+                            <div style="font-weight:bold; font-size:14px; color:#fff;"><i class="fa-solid fa-bolt" style="color:#facc15;"></i> Thẻ x2 Đào (1 Giờ) <span style="color: var(--text-muted); font-size: 12px; font-weight: normal;">- 20K Xu</span></div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px; margin-bottom: 6px; line-height: 1.4;">Tăng tốc độ máy đào lên gấp 2 lần (x2) trong vòng 1 giờ liên tục.</div>
+                            <div style="font-size:11px; color:var(--text-muted);">Số lượng: <b id="inv-b1h" style="color:#34d399;">0</b></div>
+                        </div>
+                        <button class="btn-item-action btn-primary" data-item="b1h" style="width:auto; padding:8px 14px; font-size:12px; border-radius:8px;"><i class="fa-solid fa-cart-shopping"></i> Mua 20K Xu</button>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="item-shop-card" style="background: rgba(255,255,255,0.04); border-radius:12px; padding:15px; margin-bottom:12px; border:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
+                        <div style="text-align:left; flex: 1; padding-right: 10px;">
+                            <div style="font-weight:bold; font-size:14px; color:#fff;"><i class="fa-solid fa-bolt" style="color:#facc15;"></i> Thẻ x2 Đào (2 Giờ) <span style="color: var(--text-muted); font-size: 12px; font-weight: normal;">- 30K Xu</span></div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px; margin-bottom: 6px; line-height: 1.4;">Tăng tốc độ máy đào lên gấp 2 lần (x2) trong vòng 2 giờ liên tục.</div>
+                            <div style="font-size:11px; color:var(--text-muted);">Số lượng: <b id="inv-b2h" style="color:#34d399;">0</b></div>
+                        </div>
+                        <button class="btn-item-action btn-primary" data-item="b2h" style="width:auto; padding:8px 14px; font-size:12px; border-radius:8px;"><i class="fa-solid fa-cart-shopping"></i> Mua 30K Xu</button>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="item-shop-card" style="background: rgba(255,255,255,0.04); border-radius:12px; padding:15px; margin-bottom:12px; border:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
+                        <div style="text-align:left; flex: 1; padding-right: 10px;">
+                            <div style="font-weight:bold; font-size:14px; color:#fff;"><i class="fa-solid fa-bolt" style="color:#facc15;"></i> Thẻ x2 Đào (4 Giờ) <span style="color: var(--text-muted); font-size: 12px; font-weight: normal;">- 50K Xu</span></div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px; margin-bottom: 6px; line-height: 1.4;">Tăng tốc độ máy đào lên gấp 2 lần (x2) trong vòng 4 giờ liên tục.</div>
+                            <div style="font-size:11px; color:var(--text-muted);">Số lượng: <b id="inv-b4h" style="color:#34d399;">0</b></div>
+                        </div>
+                        <button class="btn-item-action btn-primary" data-item="b4h" style="width:auto; padding:8px 14px; font-size:12px; border-radius:8px;"><i class="fa-solid fa-cart-shopping"></i> Mua 50K Xu</button>
+                    </div>
+
+                    <!-- Item 4 -->
+                    <div class="item-shop-card" style="background: rgba(255,255,255,0.04); border-radius:12px; padding:15px; margin-bottom:12px; border:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
+                        <div style="text-align:left; flex: 1; padding-right: 10px;">
+                            <div style="font-weight:bold; font-size:14px; color:#fff;"><i class="fa-solid fa-shield-halved" style="color:#ec4899;"></i> Bảo Hiểm Streak <span style="color: var(--text-muted); font-size: 12px; font-weight: normal;">- 10K Xu</span></div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px; margin-bottom: 6px; line-height: 1.4;">Sử dụng để vá lại chuỗi điểm danh 7 ngày nếu hôm qua bạn lỡ quên.</div>
+                            <div style="font-size:11px; color:var(--text-muted);">Số lượng: <b id="inv-insurance" style="color:#34d399;">0</b></div>
+                        </div>
+                        <button class="btn-item-action btn-primary" data-item="insurance" style="width:auto; padding:8px 14px; font-size:12px; border-radius:8px;"><i class="fa-solid fa-cart-shopping"></i> Mua 10K Xu</button>
+                    </div>
                 </div>
                 
             </div>

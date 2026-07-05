@@ -18,6 +18,7 @@ let isSyncing = false;
 let extraSpins = 0;
 let totalLinksCompleted = 0;
 let currentLevel = 1;
+let buffInterval;
 
 function showToast(message, type = 'success') {
     if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred(type);
@@ -39,18 +40,24 @@ function showToast(message, type = 'success') {
 
 function checkLevelUp(exp, exp_required, level) {
     const btnUpgrade = document.getElementById("btn-upgrade-level");
-    if (!btnUpgrade) return;
+    const costAlert = document.getElementById("upgrade-cost-alert");
+    if (!btnUpgrade || !costAlert) return;
 
     if (level >= 20) { 
         btnUpgrade.style.display = "none";
+        costAlert.style.display = "none";
         return;
     }
 
     if (exp >= exp_required) {
+        let xuNeeded = level * 15000;
+        costAlert.innerText = `💡 Điều kiện mở khóa hoàn tất! Phí lên Cấp ${level + 1}: 💰 ${xuNeeded.toLocaleString()} Xu.`;
+        costAlert.style.display = "block";
         btnUpgrade.style.display = "block";
         document.getElementById("next-level-display").innerText = level + 1;
     } else {
         btnUpgrade.style.display = "none";
+        costAlert.style.display = "none";
     }
 }
 
@@ -74,6 +81,7 @@ async function loadRealData() {
             return;
         }
 
+        currentLevel = data.user.level;
         currentXu = data.user.xu;
         miningSpeed = data.user.speed;
         fractionalXu = 0;
@@ -90,13 +98,26 @@ async function loadRealData() {
         if(document.getElementById("display-daily-spins")) document.getElementById("display-daily-spins").innerText = `${dailySpins}/5`;
         if(document.getElementById("display-ads-count")) document.getElementById("display-ads-count").innerText = adCount % 3;
 
+        document.getElementById("inv-b1h").innerText = data.user.b1h;
+        document.getElementById("inv-b2h").innerText = data.user.b2h;
+        document.getElementById("inv-b4h").innerText = data.user.b4h;
+        document.getElementById("inv-insurance").innerText = data.user.insurance;
         document.getElementById("user-name").innerText = data.user.username ? data.user.username : "Ẩn danh";
         document.getElementById("user-level").innerText = `Lv ${data.user.level}`;
         document.getElementById("user-exp").innerText = data.user.level >= 20 ? "MAX LEVEL" : `${data.user.exp}/${data.user.exp_required}`;
-        document.getElementById("mining-speed").innerText = `${data.user.speed.toLocaleString()} Xu/giờ`;
-        
         document.getElementById("xu-balance").innerText = data.user.xu.toLocaleString();
         document.getElementById("vnd-balance").innerText = (data.user.xu / 100).toLocaleString();
+        if (data.user.buff_active) {
+            miningSpeed = data.user.speed * 2;
+            document.getElementById("mining-speed").innerHTML = `<span style="color: #facc15;">${miningSpeed.toLocaleString()} Xu/giờ (Đang x2)</span>`;
+        } else {
+            miningSpeed = data.user.speed;
+            document.getElementById("mining-speed").innerText = `${miningSpeed.toLocaleString()} Xu/giờ`;
+        }
+        
+        startBuffTimer(data.user.buff_expire_at);
+        
+        
 
         checkLevelUp(data.user.exp, data.user.exp_required, data.user.level);
 
@@ -107,7 +128,12 @@ async function loadRealData() {
 
         startMiningTimer(data.user.mining_end_time);
 
+        renderItemButtons(data.user);
         renderLeaderboard(data.leaderboard);
+        const rankInfo = document.getElementById("my-rank-info");
+        if (rankInfo) {
+            rankInfo.innerHTML = `Thứ hạng của bạn: <span style="color: #fff; font-size: 16px;">#${data.user.user_rank}</span> (💰 ${data.user.xu.toLocaleString()} Xu)`;
+        }
 
         data.tasks.forEach(t => {
             currentTasksState[t.id] = t.completed;
@@ -705,7 +731,7 @@ function renderTaskList(tasksData) {
 
         const taskHTML = `
             <div class="simple-task-item">
-                <div class="simple-task-text">Link ${index + 1}: <a href="${task.link}" target="_blank" style="color: var(--color-blue); text-decoration: underline;">${task.link}</a></div>
+                <div class="simple-task-text">Link ${index + 1}: <span onclick="startTaskAndOpen(${task.id}, '${task.link}')" style="color: var(--color-blue); text-decoration: underline; cursor: pointer;">Nhấn để vượt link</span></div>
                 <div class="simple-task-text">Trạng thái: <span class="${isCompleted ? 'status-completed' : 'status-pending'}">${statusText}</span></div>
             </div>
         `;
@@ -990,12 +1016,14 @@ if (btnUpgrade) {
                     showToast(`🎉 Bạn vừa thăng cấp lên Lv ${d.new_level}! Tốc độ máy đào đã tăng.`, "success");
                     
                     currentLevel = d.new_level;
+                    currentXu = d.new_xu; 
                     document.getElementById("user-level").innerText = `Lv ${d.new_level}`;
                     document.getElementById("user-exp").innerText = d.new_level >= 20 ? "MAX LEVEL" : `${d.new_exp}/${d.new_exp_required}`;
                     document.getElementById("mining-speed").innerText = `${d.new_speed.toLocaleString()} Xu/giờ`;
+                    document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
+                    document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
                     
                     miningSpeed = d.new_speed; 
-                    
                     checkLevelUp(d.new_exp, d.new_exp_required, d.new_level);
                 }
             } catch (err) {
@@ -1170,4 +1198,118 @@ if (btnSubmitGiftcode) {
             }
         });
     });
+}
+
+function renderItemButtons(user) {
+    const prices = { "b1h": "20K Xu", "b2h": "30K Xu", "b4h": "50K Xu", "insurance": "10K Xu" };
+    
+    console.log("User data:", user); 
+
+    document.querySelectorAll(".btn-item-action").forEach(btn => {
+        const itemType = btn.getAttribute("data-item");
+        const count = user[itemType];
+        
+        console.log(`Item: ${itemType}, Count: ${count}, Price: ${prices[itemType]}`);
+        
+        if (count > 0) {
+            btn.innerHTML = "<i class='fa-solid fa-play'></i> Sử dụng";
+            btn.className = "btn-item-action btn-mint";
+            btn.onclick = () => useItem(itemType);
+        } else {
+            const priceText = prices[itemType] || "N/A";
+            btn.innerHTML = `<i class='fa-solid fa-cart-shopping'></i> Mua ${priceText}`;
+            btn.className = "btn-item-action btn-primary";
+            btn.onclick = () => buyItem(itemType);
+        }
+    });
+}
+
+async function buyItem(itemType) {
+    try {
+        const res = await fetch(`${BASE_URL}/api/buy_item`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
+            body: JSON.stringify({ initData: tg.initData, item_type: itemType })
+        });
+        const d = await res.json();
+        if(d.error) return showToast("❌ " + d.error, "error");
+        if(d.success) {
+            showToast("🎉 Mua thành công! Đã thêm vào túi đồ.");
+            loadRealData(); 
+        }
+    } catch(e) { showToast("Lỗi kết nối mua đồ", "error"); }
+}
+
+async function useItem(itemType) {
+    try {
+        const res = await fetch(`${BASE_URL}/api/use_item`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
+            body: JSON.stringify({ initData: tg.initData, item_type: itemType })
+        });
+        const d = await res.json();
+        if(d.error) return showToast("❌ " + d.error, "error");
+        if(d.success) {
+            showToast("🚀 " + d.msg, "success");
+            loadRealData();
+        }
+    } catch(e) { showToast("Lỗi kết nối sử dụng đồ", "error"); }
+}
+
+const btnOpenInv = document.getElementById("btn-open-inventory");
+const btnBackInv = document.getElementById("btn-back-inventory");
+const inlineInvContainer = document.getElementById("inline-inventory-container");
+
+if(btnOpenInv) {
+    btnOpenInv.addEventListener("click", () => {
+        document.getElementById("utils-buttons-container").style.display = "none";
+        inlineInvContainer.style.display = "block";
+    });
+}
+if(btnBackInv) {
+    btnBackInv.addEventListener("click", () => {
+        inlineInvContainer.style.display = "none";
+        document.getElementById("utils-buttons-container").style.display = "block";
+    });
+}
+
+function startBuffTimer(endTimeStr) {
+    const buffElement = document.getElementById("buff-time");
+    clearInterval(buffInterval);
+
+    if (!endTimeStr || endTimeStr === "None") {
+        buffElement.innerHTML = `<span style="color: var(--text-muted); font-weight: normal;">Chưa kích hoạt</span>`;
+        return;
+    }
+    
+    const safeDateStr = endTimeStr.replace(" ", "T") + "+07:00";
+    const endTime = new Date(safeDateStr).getTime();
+    
+    buffInterval = setInterval(() => {
+        let distance = endTime - new Date().getTime();
+        
+        if (distance <= 0) {
+            clearInterval(buffInterval);
+            buffElement.innerHTML = `<span style="color: var(--text-muted); font-weight: normal;">Đã hết hạn</span>`;
+            setTimeout(loadRealData, 1500); 
+            return;
+        }
+        
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        
+        buffElement.innerHTML = `<span style="color: #facc15; font-weight: bold;">Đang x2 (${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')})</span>`;
+    }, 1000);
+}
+
+async function startTaskAndOpen(taskId, url) {
+    try {
+        await fetch(`${BASE_URL}/api/start_task`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
+            body: JSON.stringify({ initData: tg.initData, task_id: taskId })
+        });
+        window.open(url, "_blank");
+    } catch(e) {}
 }
