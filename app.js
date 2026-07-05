@@ -953,7 +953,6 @@ setTimeout(() => {
             syncData().then(() => {
                 refreshBtn.innerHTML = "<i class='fa-solid fa-rotate'></i> LÀM MỚI TRẠNG THÁI LINK";
                 refreshBtn.style.opacity = "1";
-                showToast("Đã cập nhật dữ liệu mới nhất!", "success");
             });
         };
         watchAdBtn.parentNode.insertBefore(refreshBtn, watchAdBtn.nextSibling);
