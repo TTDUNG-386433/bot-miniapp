@@ -19,9 +19,7 @@ let extraSpins = 0;
 let totalLinksCompleted = 0;
 let currentLevel = 1;
 
-// Hàm hiển thị thông báo xịn
 function showToast(message, type = 'success') {
-    // Rung điện thoại nhẹ cho sướng tay
     if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred(type);
     
     let icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-xmark';
@@ -39,7 +37,6 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// Hàm check và hiển thị nút Nâng Cấp
 function checkLevelUp(exp, exp_required, level) {
     const btnUpgrade = document.getElementById("btn-upgrade-level");
     if (!btnUpgrade) return;
@@ -60,7 +57,7 @@ function checkLevelUp(exp, exp_required, level) {
 // ================= HÀM KẾT NỐI API LẤY DATA THẬT =================
 async function loadRealData() {
     if (!userId) {
-        showToast("Ko lấy được ID Telegram từ WebApp!");
+        showToast("Không lấy được ID Telegram từ WebApp!");
         return;
     }
     
@@ -92,8 +89,7 @@ async function loadRealData() {
         if(document.getElementById("display-free-tickets")) document.getElementById("display-free-tickets").innerText = freeTickets;
         if(document.getElementById("display-daily-spins")) document.getElementById("display-daily-spins").innerText = `${dailySpins}/5`;
         if(document.getElementById("display-ads-count")) document.getElementById("display-ads-count").innerText = adCount % 3;
-        
-        // 1. Cập nhật thông tin Tài khoản & Ví tiền thật
+
         document.getElementById("user-name").innerText = data.user.username ? data.user.username : "Ẩn danh";
         document.getElementById("user-level").innerText = `Lv ${data.user.level}`;
         document.getElementById("user-exp").innerText = data.user.level >= 20 ? "MAX LEVEL" : `${data.user.exp}/${data.user.exp_required}`;
@@ -103,36 +99,30 @@ async function loadRealData() {
         document.getElementById("vnd-balance").innerText = (data.user.xu / 100).toLocaleString();
 
         checkLevelUp(data.user.exp, data.user.exp_required, data.user.level);
-        
-        // 2. Đồng bộ số liệu nhiệm vụ để tính lượt quay cho Vòng Quay
+
         const completedLinksCount = data.tasks.filter(t => t.completed).length;
         const displayLinksEl = document.getElementById("display-links");
         if (displayLinksEl) displayLinksEl.innerText = completedLinksCount;
         userLinksCompleted = completedLinksCount; 
-        
-        // 3. Chạy đếm ngược máy đào realtime
+
         startMiningTimer(data.user.mining_end_time);
-        
-        // 4. Đổ dữ liệu thật vào Bảng Xếp Hạng
+
         renderLeaderboard(data.leaderboard);
-        
-        // 5. Đổ dữ liệu thật vào Danh Sách Nhiệm Vụ
+
         data.tasks.forEach(t => {
             currentTasksState[t.id] = t.completed;
         });
         renderTaskList(data.tasks);
 
-        // 6. Đổ dữ liệu điểm danh và tiến độ tuần
         if (data.attendance_status) {
             hasAttendedToday = data.has_attended_today;
             const btnDoAttendance = document.getElementById("btn-do-attendance");
             if (hasAttendedToday && btnDoAttendance) {
                 btnDoAttendance.innerHTML = "<i class='fa-solid fa-check'></i> ĐÃ ĐIỂM DANH";
                 btnDoAttendance.style.opacity = "0.7";
-                btnDoAttendance.disabled = true; // Khóa ko cho bấm lại
+                btnDoAttendance.disabled = true; 
             }
             let attendedCount = 0;
-            // Map từ Python (0=T2, 6=CN) sang HTML data-day (1=T2, 0=CN)
             const daysMap = [1, 2, 3, 4, 5, 6, 0]; 
             
             data.attendance_status.forEach((isAttended, index) => {
@@ -262,7 +252,6 @@ function switchTab(tabId) {
 const AdController = window.Adsgram.init({ blockId: "36819" });
 const watchAdBtn = document.getElementById("btn-watch-ad");
 
-// Hàm xử lý hồi chiêu động
 function startAdCooldown(btn, seconds = 20, defaultText = "") {
     let timeLeft = seconds;
     btn.disabled = true;
@@ -336,7 +325,6 @@ if (watchAdBtn) {
             startAdCooldown(watchAdBtn, 20, btnText);
 
         }).catch((error) => {
-            // Nút Xem QC ở tab Nhiệm vụ
             const btnText = `<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO (<span id="display-ads-watched">${userAdsWatched}</span>/30)`;
             const errString = (JSON.stringify(error) + String(error)).toLowerCase();
 
@@ -351,25 +339,20 @@ if (watchAdBtn) {
     });
 }
 
-// Nút kích hoạt máy đào
 const btnActivate = document.getElementById("btn-activate-mining");
 if (btnActivate) {
     btnActivate.addEventListener("click", () => {
         if (!userId) {
-            return showToast("Ko tìm thấy ID User Telegram!");
+            return showToast("Không tìm thấy ID User Telegram!");
         }
 
-        // Đổi trạng thái sang chờ xem ads
         btnActivate.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnActivate.disabled = true;
 
-        // Bắt đầu show quảng cáo
         AdController.show().then(async (result) => {
-            // Xem xong thì đổi chữ và gọi API kích hoạt
             btnActivate.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG KHỞI ĐỘNG MÁY...";
             
             try {
-                // Link API claim_free mà tôi đã hướng dẫn ông làm lúc trước
                 const upgUrl = `${BASE_URL}/api/claim_free`;
                 const res = await fetch(upgUrl, {
                     method: 'POST',
@@ -380,12 +363,10 @@ if (btnActivate) {
                 
                 if (data.error) {
                     showToast(data.error);
-                    // Nếu lỗi (vd: chưa tới ngày mới), trả lại nút
                     btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO";
                     btnActivate.disabled = false;
                 } else if (data.success) {
                     showToast("🎉 Xem quảng cáo thành công! Máy đào đã chạy.");
-                    // Chạy đếm ngược (hàm bên trên sẽ tự động khóa nút và nhảy chữ ĐANG ĐÀO)
                     startMiningTimer(data.new_end_time);
                 }
             } catch (err) {
@@ -396,7 +377,8 @@ if (btnActivate) {
             }
 
         }).catch((error) => {
-            if (error?.description === 'No ads' || error?.error === 'no_ads' || error?.error === 'ad_not_filled') {
+            const errString = (JSON.stringify(error) + String(error)).toLowerCase();
+            if (errString.includes('no ad') || errString.includes('not filled') || errString.includes('unavailable') || errString.includes('load_error')) {
                 showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
                 startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> KÍCH HOẠT ĐÀO");
             } else {
@@ -447,10 +429,10 @@ if (btnSpin) {
 
         btnSpin.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG KẾT NỐI...";
         btnSpin.style.opacity = "0.7";
-        btnSpin.disabled = true; // Khóa luôn nút trên DOM
+        btnSpin.disabled = true; 
         isSpinning = true;
 
-        let isSuccess = false; // Cờ kiểm tra quay thành công
+        let isSuccess = false; 
 
         try {
             const upgUrl = `${BASE_URL}/api/wheel`;
@@ -463,13 +445,12 @@ if (btnSpin) {
 
             if (d.error) {
                 showToast("❌ " + d.error, "error");
-                return; // Nhảy thẳng xuống finally
+                return; 
             }
 
             if(d.success) {
-                isSuccess = true; // Đánh dấu đã gọi API thành công
-                
-                // Cập nhật lại UI đếm vé từ Backend phản hồi
+                isSuccess = true; 
+
                 dailySpins = d.daily_spins;
                 extraSpins = d.extra_spins;
                 let freeTickets = d.free_tickets;
@@ -488,10 +469,9 @@ if (btnSpin) {
                 btnSpin.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG QUAY...";
                 wheel.style.transform = `rotate(${currentRotation}deg)`;
                 
-                // Set timeout chờ animation 4s
                 setTimeout(() => {
                     isSpinning = false;
-                    btnSpin.disabled = false; // Nhả DOM
+                    btnSpin.disabled = false; 
                     btnSpin.innerHTML = "<i class='fa-solid fa-rotate-right'></i> QUAY";
                     btnSpin.style.opacity = "1";
                     
@@ -582,8 +562,6 @@ const btnShareLink = document.getElementById("btn-share-link");
 const invitedCountDisplay = document.getElementById("invited-count");
 
 let invitedCount = 0; 
-
-// Gắn event trực tiếp, sạch sẽ
 if (btnInvite) {
     btnInvite.addEventListener("click", () => {
         if (invitedCountDisplay) invitedCountDisplay.innerText = invitedCount;
@@ -633,19 +611,15 @@ if (btnBackAttendance) {
 
 if (btnDoAttendance) {
     btnDoAttendance.addEventListener("click", () => {
-        // Kiểm tra xem đã điểm danh hôm nay chưa
         if (hasAttendedToday) {
             showToast("Hôm nay bạn đã điểm danh rồi! Hãy quay lại vào ngày mai nhé.");
             return;
         }
 
-        // 1. Đổi nút thành trạng thái tải quảng cáo
         btnDoAttendance.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnDoAttendance.disabled = true;
 
-        // 2. Gọi quảng cáo Adsgram
         AdController.show().then(async (result) => {
-            // Xem xong quảng cáo thì bắt đầu gọi API điểm danh
             btnDoAttendance.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG ĐIỂM DANH...";
             
             try {
@@ -661,8 +635,7 @@ if (btnDoAttendance) {
                     hasAttendedToday = true;
                     btnDoAttendance.innerHTML = "<i class='fa-solid fa-check'></i> ĐÃ ĐIỂM DANH";
                     btnDoAttendance.style.opacity = "0.7";
-                    
-                    // Cập nhật lại UI cho thẻ ngày hôm nay
+
                     const todayDay = new Date().getDay(); 
                     const currentDayLi = document.querySelector(`#attendance-list li[data-day="${todayDay}"]`);
                     if (currentDayLi) {
@@ -674,11 +647,9 @@ if (btnDoAttendance) {
                         currentDayLi.style.borderBottom = "none";
                     }
 
-                    // Cập nhật tiến độ điểm danh
                     const progressEl = document.getElementById("attendance-progress");
                     if (progressEl) progressEl.innerText = `${d.streak}/7`;
 
-                    // Cập nhật số dư
                     currentXu = d.new_xu;
                     document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
                     document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
@@ -687,8 +658,7 @@ if (btnDoAttendance) {
                     if(!lvl.includes("20") && !lvl.includes("MAX")) {
                         document.getElementById("user-exp").innerText = `${d.new_exp}/${d.exp_required}`;
                     }
-                    
-                    // Thông báo thưởng (tùy thuộc vào việc có đủ 7 ngày hay không)
+
                     if (d.is_weekly) {
                         showToast(`🎉 ĐỈNH CHÓP! Điểm danh đủ 7 ngày. Húp trọn ${d.reward_xu.toLocaleString()} Xu & ${d.reward_exp} EXP!`);
                     } else {
@@ -707,7 +677,8 @@ if (btnDoAttendance) {
             }
 
         }).catch((error) => {
-            if (error?.description === 'No ads' || error?.error === 'no_ads' || error?.error === 'ad_not_filled') {
+            const errString = (JSON.stringify(error) + String(error)).toLowerCase();
+            if (errString.includes('no ad') || errString.includes('not filled') || errString.includes('unavailable') || errString.includes('load_error')) {
                 showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
                 startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> ĐIỂM DANH NGAY");
             } else {
@@ -751,19 +722,17 @@ function renderTaskList(tasksData) {
 const wdMethodContainer = document.getElementById("wd-method-container");
 const wdFormBank = document.getElementById("wd-form-bank");
 const wdFormMomo = document.getElementById("wd-form-momo");
-
 const btnWdBank = document.getElementById("btn-wd-bank");
 const btnWdMomo = document.getElementById("btn-wd-momo");
+
 // ================= XỬ LÝ NÚT QUAY LẠI PHẦN RÚT TIỀN =================
 const btnsBackWd = document.querySelectorAll(".btn-back-wd");
 
 if (btnsBackWd.length > 0) {
     btnsBackWd.forEach(btn => {
         btn.addEventListener("click", () => {
-            // Ẩn 2 form nhập liệu đi
             if (wdFormBank) wdFormBank.style.display = "none";
             if (wdFormMomo) wdFormMomo.style.display = "none";
-            // Hiện lại form chọn phương thức ban đầu
             if (wdMethodContainer) wdMethodContainer.style.display = "block";
         });
     });
@@ -776,8 +745,7 @@ if (btnWdBank && btnWdMomo) {
     btnWdBank.addEventListener("click", () => {
         wdMethodContainer.style.display = "none";
         wdFormBank.style.display = "block";
-        
-        // Nhét số Xu và VNĐ vào form Ngân Hàng
+ 
         if (document.getElementById("wd-bank-xu")) {
             document.getElementById("wd-bank-xu").innerText = currentXu.toLocaleString();
             document.getElementById("wd-bank-vnd").innerText = (currentXu / 100).toLocaleString();
@@ -787,8 +755,7 @@ if (btnWdBank && btnWdMomo) {
     btnWdMomo.addEventListener("click", () => {
         wdMethodContainer.style.display = "none";
         wdFormMomo.style.display = "block";
-        
-        // Nhét số Xu và VNĐ vào form Momo
+
         if (document.getElementById("wd-momo-xu")) {
             document.getElementById("wd-momo-xu").innerText = currentXu.toLocaleString();
             document.getElementById("wd-momo-vnd").innerText = (currentXu / 100).toLocaleString();
@@ -825,7 +792,7 @@ if (btnSubmitBank) {
                 body: JSON.stringify({
                     initData: tg.initData,
                     amount_vnd: amount,
-                    method: "Ngân Hàng", // Hoặc "Momo"
+                    method: "Ngân Hàng", 
                     info: formatInfo,
                     username: userName
                 })
@@ -835,14 +802,12 @@ if (btnSubmitBank) {
             if (data.error) {
                 showToast("❌ " + data.error);
             } else if (data.success) {
-                // Trừ tiền trên giao diện tức thì
                 currentXu = data.new_xu;
                 document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
                 document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
                 
                 showToast("✅ Lệnh rút đã được gửi! Admin đang xem xét duyệt, bạn chú ý check tin nhắn bot nhé.");
                 
-                // Trả về màn hình chọn phương thức & Xóa trắng form
                 wdFormBank.style.display = "none";
                 wdMethodContainer.style.display = "block";
                 document.getElementById("bank-amount").value = "";
@@ -988,7 +953,6 @@ setTimeout(() => {
             syncData().then(() => {
                 refreshBtn.innerHTML = "<i class='fa-solid fa-rotate'></i> LÀM MỚI TRẠNG THÁI LINK";
                 refreshBtn.style.opacity = "1";
-                // Thêm dòng này vào để báo cho ng dùng biết app đã load xong data
                 showToast("Đã cập nhật dữ liệu mới nhất!", "success");
             });
         };
@@ -1045,9 +1009,11 @@ if (btnUpgrade) {
                 btnUpgrade.disabled = false;
             }
 
-        }).catch((error) => {if (error?.description === 'No ads' || error?.error === 'no_ads' || error?.error === 'ad_not_filled') {
+        }).catch((error) => {
+            const errString = (JSON.stringify(error) + String(error)).toLowerCase();
+            if (errString.includes('no ad') || errString.includes('not filled') || errString.includes('unavailable') || errString.includes('load_error')) {
                 showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
-                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> ĐIỂM DANH NGAY");
+                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> NÂNG CẤP");
             } else {
             showToast("⚠️ Hiện đang hết video quảng cáo vui lòng thử lại sau.", "error");
             const nextLvl = document.getElementById("next-level-display").innerText;
@@ -1062,13 +1028,10 @@ if (btnUpgrade) {
 const btnClaimWeekly = document.getElementById("btn-claim-weekly");
 if (btnClaimWeekly) {
     btnClaimWeekly.addEventListener("click", () => {
-        // 1. Đổi nút thành trạng thái tải quảng cáo
         btnClaimWeekly.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnClaimWeekly.disabled = true;
 
-        // 2. Gọi quảng cáo Adsgram
         AdController.show().then(async (result) => {
-            // Xem xong quảng cáo thì bắt đầu gọi API mở rương
             btnClaimWeekly.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG MỞ RƯƠNG...";
 
             try {
@@ -1081,11 +1044,9 @@ if (btnClaimWeekly) {
                 const d = await res.json();
                 
                 if (d.success) {
-                    // Đổi nút thành màu xám báo đã nhận
                     btnClaimWeekly.innerHTML = "<i class='fa-solid fa-check-double'></i> ĐÃ NHẬN THƯỞNG";
                     btnClaimWeekly.className = "btn-gray";
                     
-                    // Cập nhật số dư
                     currentXu = d.new_xu;
                     document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
                     document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
@@ -1108,9 +1069,10 @@ if (btnClaimWeekly) {
                 btnClaimWeekly.disabled = false;
             }
         }).catch((error) => {
-            if (error?.description === 'No ads' || error?.error === 'no_ads' || error?.error === 'ad_not_filled') {
+            const errString = (JSON.stringify(error) + String(error)).toLowerCase();
+            if (errString.includes('no ad') || errString.includes('not filled') || errString.includes('unavailable') || errString.includes('load_error')) {
                 showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
-                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> ĐIỂM DANH NGAY");
+                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> NHẬN THƯỞNG");
             } else {
             showToast("❌ Bạn chưa xem hết quảng cáo nên rương bị khóa lại nhé!");
             btnClaimWeekly.innerHTML = "<i class='fa-solid fa-unlock fa-bounce'></i> NHẬN RƯƠNG THƯỞNG";
@@ -1134,7 +1096,6 @@ if (btnGiftcode) {
     });
 }
 
-// Bấm nút quay lại
 if (btnBackGiftcode) {
     btnBackGiftcode.addEventListener("click", () => {
         inlineGiftcodeContainer.style.display = "none";
@@ -1151,13 +1112,10 @@ if (btnSubmitGiftcode) {
             return showToast("⚠️ Bạn chưa nhập mã Gift Code!", "error");
         }
 
-        // 1. Đổi trạng thái thành đang tải quảng cáo
         btnSubmitGiftcode.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnSubmitGiftcode.disabled = true;
 
-        // 2. Bật quảng cáo lên bắt user xem
         AdController.show().then(async (result) => {
-            // Xem xong quảng cáo thì mới bắt đầu call API kiểm tra mã
             btnSubmitGiftcode.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG KIỂM TRA MÃ...";
 
             try {
@@ -1168,7 +1126,6 @@ if (btnSubmitGiftcode) {
                 });
                 const d = await res.json();
 
-                // Trả lại trạng thái nút ban đầu
                 btnSubmitGiftcode.innerHTML = "<i class='fa-solid fa-check-circle'></i> XÁC NHẬN MÃ";
                 btnSubmitGiftcode.disabled = false;
 
@@ -1184,10 +1141,6 @@ if (btnSubmitGiftcode) {
                     if(!lvl.includes("20") && !lvl.includes("MAX")) {
                         document.getElementById("user-exp").innerText = `${d.new_exp}/${d.exp_required}`;
                     }
-
-                    // ==========================================
-                    // KIỂM TRA VÀ HIỂN THỊ THÔNG BÁO THÔNG MINH
-                    // ==========================================
                     let rewardMsg = "";
                     if (d.reward_xu > 0 && d.reward_exp > 0) {
                         rewardMsg = `${d.reward_xu.toLocaleString()} Xu & ${d.reward_exp} EXP`;
@@ -1198,7 +1151,7 @@ if (btnSubmitGiftcode) {
                     }
 
                     showToast(`🎉 Nhập mã thành công! Bạn nhận đc ${rewardMsg}.`, "success");
-                    inputGiftcode.value = ""; // Dọn sạch ô input sau khi húp xong
+                    inputGiftcode.value = ""; 
                 }
             } catch (err) {
                 btnSubmitGiftcode.innerHTML = "<i class='fa-solid fa-check-circle'></i> XÁC NHẬN MÃ";
@@ -1207,9 +1160,10 @@ if (btnSubmitGiftcode) {
             }
 
         }).catch((error) => {
-            if (error?.description === 'No ads' || error?.error === 'no_ads' || error?.error === 'ad_not_filled') {
+            const errString = (JSON.stringify(error) + String(error)).toLowerCase();
+            if (errString.includes('no ad') || errString.includes('not filled') || errString.includes('unavailable') || errString.includes('load_error')) {
                 showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
-                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> ĐIỂM DANH NGAY");
+                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> XÁC NHẬN MÃ");
             } else {
             showToast("❌ Bạn chưa xem hết quảng cáo nên mã bị hủy rồi nhé!", "error");
             btnSubmitGiftcode.innerHTML = "<i class='fa-solid fa-check-circle'></i> XÁC NHẬN MÃ";
