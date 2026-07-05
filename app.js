@@ -336,14 +336,16 @@ if (watchAdBtn) {
             startAdCooldown(watchAdBtn, 20, btnText);
 
         }).catch((error) => {
+            // Nút Xem QC ở tab Nhiệm vụ
             const btnText = `<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO (<span id="display-ads-watched">${userAdsWatched}</span>/30)`;
-            
-            if (error?.description === 'No ads' || error?.error === 'no_ads' || error?.error === 'ad_not_filled') {
-                showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Bạn đợi 20 giây rồi thử lại nhé!", "error");
-                startAdCooldown(watchAdBtn, 20, btnText);
+            const errString = (JSON.stringify(error) + String(error)).toLowerCase();
+
+            if (errString.includes('no ad') || errString.includes('not filled') || errString.includes('unavailable') || errString.includes('load_error')) {
+                showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Bạn đợi 1 lúc rồi thử lại nhé!", "error");
+                startAdCooldown(watchAdBtn, 20, btnText); 
             } else {
-                showToast("❌ Bạn tắt quảng cáo sớm nên chưa đc nhận thưởng đâu nha!", "error");
-                startAdCooldown(watchAdBtn, 20, btnText);
+                showToast("❌ Bạn tắt quảng cáo sớm nên chưa được nhận thưởng đâu nha!", "error");
+                startAdCooldown(watchAdBtn, 20, btnText); 
             }
         });
     });
