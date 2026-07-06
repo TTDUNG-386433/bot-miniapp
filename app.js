@@ -1159,7 +1159,6 @@ if (btnSubmitGiftcode) {
                 if (d.error) {
                     showToast("❌ " + d.error, "error");
                 } else if (d.success) {
-                    // Tiền về ví nhảy số
                     currentXu = d.new_xu;
                     document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
                     document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
@@ -1168,16 +1167,21 @@ if (btnSubmitGiftcode) {
                     if(!lvl.includes("20") && !lvl.includes("MAX")) {
                         document.getElementById("user-exp").innerText = `${d.new_exp}/${d.exp_required}`;
                     }
-                    let rewardMsg = "";
-                    if (d.reward_xu > 0 && d.reward_exp > 0) {
-                        rewardMsg = `${d.reward_xu.toLocaleString()} Xu & ${d.reward_exp} EXP`;
-                    } else if (d.reward_xu > 0) {
-                        rewardMsg = `${d.reward_xu.toLocaleString()} Xu`;
-                    } else if (d.reward_exp > 0) {
-                        rewardMsg = `${d.reward_exp} EXP`;
+                    
+                    let rewards = [];
+                    if (d.reward_xu > 0) rewards.push(`${d.reward_xu.toLocaleString()} Xu`);
+                    if (d.reward_exp > 0) rewards.push(`${d.reward_exp} EXP`);
+                    
+                    // Xử lý nối chuỗi thẻ x2
+                    if (d.reward_item) {
+                        let itemStr = d.reward_item === "b1h" ? "1 Giờ" : d.reward_item === "b2h" ? "2 Giờ" : "4 Giờ";
+                        rewards.push(`1 Thẻ x2 (${itemStr})`);
+                        loadRealData(); // Load lại data kho đồ 
                     }
 
-                    showToast(`🎉 Nhập mã thành công! Bạn nhận đc ${rewardMsg}.`, "success");
+                    let rewardMsg = rewards.join(" & ");
+
+                    showToast(`🎉 Nhập mã thành công! Bạn nhận được ${rewardMsg}.`, "success");
                     inputGiftcode.value = ""; 
                 }
             } catch (err) {
