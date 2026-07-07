@@ -1,7 +1,7 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-const BASE_URL = "https://irritant-dwarf-starlit.ngrok-free.dev"; 
+const BASE_URL = "https://api.devvippromax.me"; 
 const API_URL = `${BASE_URL}/api/data`;
 const userId = tg.initDataUnsafe?.user?.id || 0; 
 
