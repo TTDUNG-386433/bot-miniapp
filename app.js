@@ -279,7 +279,7 @@ function switchTab(tabId) {
     if(idx !== -1) document.querySelectorAll('.nav-item')[idx].classList.add('active');
 }
 
-const AdController = window.Adsgram.init({ blockId: "36819" });
+const AdController = window.Adsgram.init({ blockId: "35382" });
 const watchAdBtn = document.getElementById("btn-watch-ad");
 
 function startAdCooldown(btn, seconds = 20, defaultText = "") {
@@ -733,9 +733,16 @@ function renderTaskList(tasksData) {
         const statusText = isCompleted ? "thành công" : "chưa làm";
         if (isCompleted) completedCount++;
 
+        let linkActionHTML = "";
+        if (isCompleted) {
+            linkActionHTML = `<span style="color: var(--text-muted); text-decoration: line-through; cursor: not-allowed;">🔒 Đã vượt xong</span>`;
+        } else {
+            linkActionHTML = `<span onclick="startTaskAndOpen(${task.id}, '${task.link}')" style="color: var(--color-blue); text-decoration: underline; cursor: pointer;">Nhấn để vượt link</span>`;
+        }
+
         const taskHTML = `
             <div class="simple-task-item">
-                <div class="simple-task-text">Link ${index + 1}: <span onclick="startTaskAndOpen(${task.id}, '${task.link}')" style="color: var(--color-blue); text-decoration: underline; cursor: pointer;">Nhấn để vượt link</span></div>
+                <div class="simple-task-text">Link ${index + 1}: ${linkActionHTML}</div>
                 <div class="simple-task-text">Trạng thái: <span class="${isCompleted ? 'status-completed' : 'status-pending'}">${statusText}</span></div>
             </div>
         `;
