@@ -122,8 +122,6 @@ async function loadRealData() {
         checkLevelUp(data.user.exp, data.user.exp_required, data.user.level);
 
         const completedLinksCount = data.tasks.filter(t => t.completed).length;
-        const displayLinksEl = document.getElementById("display-links");
-        if (displayLinksEl) displayLinksEl.innerText = completedLinksCount;
         userLinksCompleted = completedLinksCount; 
 
         startMiningTimer(data.user.mining_end_time);
@@ -210,11 +208,14 @@ function startMiningTimer(endTimeStr) {
     
     const safeDateStr = endTimeStr.replace(" ", "T") + "+07:00";
     const endTime = new Date(safeDateStr).getTime();
-    let distance = endTime - new Date().getTime();
+    
+    // Lưu mốc thời gian bắt đầu chạy tick
+    let lastTickTime = Date.now();
     
     clearInterval(miningInterval);
     miningInterval = setInterval(() => {
-        distance -= 1000;
+        const now = Date.now();
+        let distance = endTime - now;
         
         if (distance <= 0) {
             clearInterval(miningInterval);
@@ -222,7 +223,7 @@ function startMiningTimer(endTimeStr) {
             timeElement.classList.add("time-stopped");
             
             if (btnActivate) {
-                btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO FREE (4H)";
+                btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO";
                 btnActivate.disabled = false;
                 btnActivate.style.opacity = "1";
             }
@@ -243,8 +244,11 @@ function startMiningTimer(endTimeStr) {
         
         timeElement.innerText = `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
         
+        const deltaSecs = (now - lastTickTime) / 1000;
+        lastTickTime = now;
+        
         if (miningSpeed > 0) {
-            fractionalXu += miningSpeed / 3600; 
+            fractionalXu += (miningSpeed / 3600) * deltaSecs; 
             if (fractionalXu >= 1) {
                 const addXu = Math.floor(fractionalXu);
                 currentXu += addXu;
@@ -406,7 +410,7 @@ if (btnActivate) {
             const errString = (JSON.stringify(error) + String(error)).toLowerCase();
             if (errString.includes('no ad') || errString.includes('not filled') || errString.includes('unavailable') || errString.includes('load_error')) {
                 showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
-                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> KÍCH HOẠT ĐÀO");
+                startAdCooldown(btnActivate, 20, "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO");
             } else {
             showToast("❌ Bạn chưa xem xong quảng cáo hoặc lỗi mạng. Kích hoạt bị hủy!");
             btnActivate.innerHTML = "<i class='fa-solid fa-gift'></i> KÍCH HOẠT ĐÀO";
@@ -706,7 +710,7 @@ if (btnDoAttendance) {
             const errString = (JSON.stringify(error) + String(error)).toLowerCase();
             if (errString.includes('no ad') || errString.includes('not filled') || errString.includes('unavailable') || errString.includes('load_error')) {
                 showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
-                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> ĐIỂM DANH NGAY");
+                startAdCooldown(btnDoAttendance, 20, "<i class='fa-solid fa-pen-to-square'></i> ĐIỂM DANH NGAY");
             } else {
             showToast("❌ Bạn chưa xem hết quảng cáo nên không thể điểm danh nhé!");
             btnDoAttendance.innerHTML = "<i class='fa-solid fa-pen-to-square'></i> ĐIỂM DANH NGAY";
@@ -945,8 +949,6 @@ async function syncData() {
             }
 
             const completedLinksCount = data.tasks.filter(t => t.completed).length;
-            const displayLinks = document.getElementById("display-links");
-            if (displayLinks) displayLinks.innerText = completedLinksCount;
             userLinksCompleted = completedLinksCount;
         }
 
@@ -1040,7 +1042,7 @@ if (btnUpgrade) {
             const errString = (JSON.stringify(error) + String(error)).toLowerCase();
             if (errString.includes('no ad') || errString.includes('not filled') || errString.includes('unavailable') || errString.includes('load_error')) {
                 showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
-                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> NÂNG CẤP");
+                startAdCooldown(btnUpgrade, 20, `<i class="fa-solid fa-level-up-alt fa-bounce"></i> NÂNG CẤP LÊN LV <span id="next-level-display">${nextLvl}</span>`);
             } else {
             showToast("⚠️ Hiện đang hết video quảng cáo vui lòng thử lại sau.", "error");
             const nextLvl = document.getElementById("next-level-display").innerText;
@@ -1099,7 +1101,7 @@ if (btnClaimWeekly) {
             const errString = (JSON.stringify(error) + String(error)).toLowerCase();
             if (errString.includes('no ad') || errString.includes('not filled') || errString.includes('unavailable') || errString.includes('load_error')) {
                 showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
-                startAdCooldown(btnSubmitGiftcode, 20, "<i class='fa-solid fa-check-circle'></i> NHẬN THƯỞNG");
+                startAdCooldown(btnClaimWeekly, 20, "<i class='fa-solid fa-unlock fa-bounce'></i> NHẬN RƯƠNG THƯỞNG");
             } else {
             showToast("❌ Bạn chưa xem hết quảng cáo nên rương bị khóa lại nhé!");
             btnClaimWeekly.innerHTML = "<i class='fa-solid fa-unlock fa-bounce'></i> NHẬN RƯƠNG THƯỞNG";
