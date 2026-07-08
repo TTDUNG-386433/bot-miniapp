@@ -279,7 +279,27 @@ function switchTab(tabId) {
     if(idx !== -1) document.querySelectorAll('.nav-item')[idx].classList.add('active');
 }
 
-const AdController = window.Adsgram.init({ blockId: "34713" });
+const AdController = window.Adsgram.init({ blockId: "35429" });
+
+function showRewardAd() {
+    return new Promise((resolve, reject) => {
+        try {
+            if (window.TelegramAdsController) {
+                let adPromise = window.TelegramAdsController.show(); 
+                
+                if (adPromise && typeof adPromise.then === 'function') {
+                    adPromise.then(resolve).catch(reject);
+                } else {
+                    setTimeout(resolve, 1000); 
+                }
+            } else {
+                reject("RichAds chưa được tải");
+            }
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
 const watchAdBtn = document.getElementById("btn-watch-ad");
 
 function startAdCooldown(btn, seconds = 20, defaultText = "") {
@@ -312,7 +332,7 @@ if (watchAdBtn) {
         watchAdBtn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         watchAdBtn.disabled = true;
 
-        AdController.show().then(async (result) => {
+        showRewardAd().then(async (result) => {
             watchAdBtn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG NHẬN THƯỞNG...";
 
             try {
@@ -379,7 +399,7 @@ if (btnActivate) {
         btnActivate.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnActivate.disabled = true;
 
-        AdController.show().then(async (result) => {
+        showRewardAd().then(async (result) => {
             btnActivate.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG KHỞI ĐỘNG MÁY...";
             
             try {
@@ -649,7 +669,7 @@ if (btnDoAttendance) {
         btnDoAttendance.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnDoAttendance.disabled = true;
 
-        AdController.show().then(async (result) => {
+        showRewardAd().then(async (result) => {
             btnDoAttendance.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG ĐIỂM DANH...";
             
             try {
@@ -808,11 +828,11 @@ if (btnSubmitBank) {
         const stk = document.getElementById("bank-stk").value.trim();
         const fullName = document.getElementById("bank-fullname").value.trim();
 
-        if (!amount || amount < 2000 || amount > 10000) {
-            return showToast("Số tiền rút phải từ 2,000 đến 10,000 VNĐ!");
+       if (!amount || amount < 2000 || amount > 10000) {
+            return showToast("Mệnh giá Voucher phải từ 2,000 đến 10,000 Điểm!");
         }
         if (!bankName || !stk || !fullName) {
-            return showToast("Vui lòng điền đầy đủ thông tin Ngân hàng!");
+            return showToast("Vui lòng điền đủ thông tin để nhận mã Shopee!");
         }
 
         const formatInfo = `${bankName} - ${stk} - ${fullName.toUpperCase()}`;
@@ -856,7 +876,7 @@ if (btnSubmitBank) {
             showToast("❌ Lỗi kết nối mạng, vui lòng thử lại sau!");
         }
 
-        btnSubmitBank.innerHTML = "<i class='fa-solid fa-paper-plane'></i> GỬI LỆNH RÚT";
+        btnSubmitBank.innerHTML = "<i class='fa-solid fa-gift'></i> NHẬN MÃ SHOPEE";
         btnSubmitBank.disabled = false;
     });
 }
@@ -869,10 +889,10 @@ if (btnSubmitMomo) {
         const fullName = document.getElementById("momo-fullname").value.trim();
 
         if (!amount || amount < 2000 || amount > 10000) {
-            return showToast("Số tiền rút phải từ 2,000 đến 10,000 VNĐ!");
+            return showToast("Mệnh giá Voucher phải từ 2,000 đến 10,000 Điểm!");
         }
         if (!phone || !fullName) {
-            return showToast("Vui lòng điền đầy đủ số điện thoại và tên!");
+            return showToast("Vui lòng điền đủ thông tin để nhận mã ShopeeFood!");
         }
 
         const formatInfo = `${phone} - ${fullName.toUpperCase()}`;
@@ -903,7 +923,7 @@ if (btnSubmitMomo) {
                 document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
                 document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
                 
-                showToast("✅ Lệnh rút đã được gửi! Admin đang xem xét duyệt, bạn chú ý check tin nhắn bot nhé.");
+                showToast("✅ Đã gửi yêu cầu đổi mã ShopeeFood! Quản trị viên sẽ gửi mã qua tin nhắn bot.");
                 
                 wdFormMomo.style.display = "none";
                 wdMethodContainer.style.display = "block";
@@ -915,7 +935,7 @@ if (btnSubmitMomo) {
             showToast("❌ Lỗi kết nối mạng, vui lòng thử lại sau!");
         }
 
-        btnSubmitMomo.innerHTML = "<i class='fa-solid fa-paper-plane'></i> GỬI LỆNH RÚT";
+        btnSubmitMomo.innerHTML = "<i class='fa-solid fa-gift'></i> NHẬN MÃ SHOPEEFOOD";
         btnSubmitMomo.disabled = false;
     });
 }
@@ -1007,7 +1027,7 @@ if (btnUpgrade) {
         btnUpgrade.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnUpgrade.disabled = true;
 
-        AdController.show().then(async (result) => {
+        showRewardAd().then(async (result) => {
             btnUpgrade.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG NÂNG CẤP...";
 
             try {
@@ -1067,7 +1087,7 @@ if (btnClaimWeekly) {
         btnClaimWeekly.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnClaimWeekly.disabled = true;
 
-        AdController.show().then(async (result) => {
+        showRewardAd().then(async (result) => {
             btnClaimWeekly.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG MỞ RƯƠNG...";
 
             try {
@@ -1151,7 +1171,7 @@ if (btnSubmitGiftcode) {
         btnSubmitGiftcode.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnSubmitGiftcode.disabled = true;
 
-        AdController.show().then(async (result) => {
+        showRewardAd().then(async (result) => {
             btnSubmitGiftcode.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG KIỂM TRA MÃ...";
 
             try {

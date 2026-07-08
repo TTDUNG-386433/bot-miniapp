@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bot Đào Xu Mini App</title>
-    <!-- Bộ icon FontAwesome chuyên nghiệp -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- File CSS riêng biệt -->
     <link rel="stylesheet" href="style.css">
-    <!-- SDK Telegram Web App bắt buộc -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
+    <script>
+        window.TelegramAdsController = new TelegramAdsController();
+        window.TelegramAdsController.initialize({
+        pubId: "1016756", 
+        appId: "8048",
+        });
+</script>
 </head>
 <body>
 
@@ -76,7 +80,7 @@
                 </div>
 
                 <div class="progress-box-inline" style="margin-top: 20px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;">
-                    📊 Tiến độ nhiệm vụ hôm nay: <span id="task-progress" style="font-weight: bold; color: var(--color-mint);">0/10</span>
+                    📊 Tiến độ nhiệm vụ hôm nay: <span id="task-progress" style="font-weight: bold; color: var(--color-mint);">0/4</span>
                 </div>
             </div>
         </div>
@@ -309,20 +313,20 @@
 
         <!-- ================= TAB 3: RÚT TIỀN ================= -->
         <div id="tab-withdraw" class="tab-content">
-            <div class="header"><i class="fa-solid fa-money-bill-transfer"></i> RÚT TIỀN AN TOÀN</div>
+            <div class="header"><i class="fa-solid fa-store"></i> TRUNG TÂM VOUCHER</div>
             
             <div class="card" id="wd-method-container">
-                <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-building-columns"></i> CHỌN PHƯƠNG THỨC</h3>
+                <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-ticket"></i> CHỌN LOẠI VOUCHER</h3>
                 <div class="grid-buttons">
-                    <button id="btn-wd-bank" class="btn-primary" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);"><i class="fa-solid fa-building-columns"></i> NGÂN HÀNG</button>
-                    <button id="btn-wd-momo" class="btn-pink" style="background: linear-gradient(135deg, #d946ef 0%, #a21caf 100%);"><i class="fa-solid fa-wallet"></i> VÍ MOMO</button>
+                    <button id="btn-wd-bank" class="btn-primary" style="background: linear-gradient(135deg, #ee4d2d 0%, #ff7337 100%);"><i class="fa-solid fa-bag-shopping"></i> MÃ SHOPEE</button>
+                    <button id="btn-wd-momo" class="btn-pink" style="background: linear-gradient(135deg, #ee4d2d 0%, #ff7337 100%);"><i class="fa-solid fa-utensils"></i> MÃ SHOPEEFOOD</button>
                 </div>
                 
                 <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; margin-top: 20px; border: 1px solid rgba(255,255,255,0.08);">
                     <div style="font-size: 13px; color: var(--text-main); line-height: 1.6;">
-                        <i class="fa-solid fa-circle-info" style="color: var(--color-blue); margin-right: 5px;"></i> <b>Điều kiện rút:</b><br>
-                        <span style="margin-left: 20px; color: #e2e8f0;">- Cấp độ yêu cầu: <b style="color: #ffffff;">Lv 5</b> trở lên.</span><br>
-                        <span style="margin-left: 20px; color: #e2e8f0;">- Hạn mức: <b style="color: #ffffff;">2,000đ - 10,000đ</b>.</span><br>
+                        <i class="fa-solid fa-circle-info" style="color: #ff7337; margin-right: 5px;"></i> <b>Điều kiện đổi mã:</b><br>
+                        <span style="margin-left: 20px; color: #e2e8f0;">- Yêu cầu: Đạt <b style="color: #ffffff;">Lv 5</b> trở lên.</span><br>
+                        <span style="margin-left: 20px; color: #e2e8f0;">- Mệnh giá: <b style="color: #ffffff;">2,000 - 10,000 Điểm</b>.</span><br>
                         <span style="margin-left: 20px; color: #e2e8f0;">- Giới hạn: <b style="color: #ffffff;">1 lần/ngày</b> (Reset 6h sáng).</span>
                     </div>
                 </div>
@@ -333,21 +337,21 @@
                     <div style="text-align: left; margin-bottom: 15px;">
                         <button class="btn-back-wd" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
                     </div>
-                    <h3 style="margin-bottom: 0; color: #3b82f6; justify-content: center;"><i class="fa-solid fa-building-columns"></i> RÚT NGÂN HÀNG</h3>
+                    <h3 style="margin-bottom: 0; color: #ff7337; justify-content: center;"><i class="fa-solid fa-bag-shopping"></i> ĐỔI VOUCHER SHOPEE</h3>
                 </div>
 
                 <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 20px; border: 1px dashed rgba(255,255,255,0.1);">
                     <div style="color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Số dư khả dụng:</div>
                     <span id="wd-bank-xu" style="color: var(--color-mint); font-weight: bold; font-size: 16px;">0</span> <span style="color: var(--color-mint); font-size: 14px;">Xu</span> 
-                    <span style="color: var(--text-muted); font-size: 13px;">(~<span id="wd-bank-vnd">0</span> VNĐ)</span>
+                    <span style="color: var(--text-muted); font-size: 13px;">(~<span id="wd-bank-vnd">0</span> Điểm)</span>
                 </div>
                 
-                <input type="number" id="bank-amount" class="input-field" placeholder="Số tiền rút (VNĐ) - VD: 5000">
-                <input type="text" id="bank-name" class="input-field" placeholder="Tên Ngân Hàng (VD: MBBank)">
-                <input type="number" id="bank-stk" class="input-field" placeholder="Số tài khoản">
-                <input type="text" id="bank-fullname" class="input-field" placeholder="Họ và Tên (Không dấu)">
+                <input type="number" id="bank-amount" class="input-field" placeholder="Mệnh giá Voucher (VD: 5000)">
+                <input type="text" id="bank-name" class="input-field" placeholder="Username Shopee của bạn">
+                <input type="number" id="bank-stk" class="input-field" placeholder="SĐT liên kết Shopee">
+                <input type="text" id="bank-fullname" class="input-field" placeholder="Tên người nhận (Không dấu)">
                 
-                <button id="btn-submit-bank" class="btn-primary" style="margin-top: 10px; background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);"><i class="fa-solid fa-paper-plane"></i> GỬI LỆNH RÚT</button>
+                <button id="btn-submit-bank" class="btn-primary" style="margin-top: 10px; background: linear-gradient(135deg, #ee4d2d 0%, #ff7337 100%);"><i class="fa-solid fa-gift"></i> NHẬN MÃ SHOPEE</button>
             </div>
 
             <div class="card" id="wd-form-momo" style="display: none;">
@@ -355,23 +359,22 @@
                     <div style="text-align: left; margin-bottom: 15px;">
                         <button class="btn-back-wd" style="width: auto; padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.1); border-radius: 8px;"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
                     </div>
-                    <h3 style="margin-bottom: 0; color: #d946ef; justify-content: center;"><i class="fa-solid fa-wallet"></i> RÚT VÍ MOMO</h3>
+                    <h3 style="margin-bottom: 0; color: #ff7337; justify-content: center;"><i class="fa-solid fa-utensils"></i> ĐỔI MÃ SHOPEEFOOD</h3>
                 </div>
 
                 <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 20px; border: 1px dashed rgba(255,255,255,0.1);">
                     <div style="color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Số dư khả dụng:</div>
                     <span id="wd-momo-xu" style="color: var(--color-mint); font-weight: bold; font-size: 16px;">0</span> <span style="color: var(--color-mint); font-size: 14px;">Xu</span> 
-                    <span style="color: var(--text-muted); font-size: 13px;">(~<span id="wd-momo-vnd">0</span> VNĐ)</span>
+                    <span style="color: var(--text-muted); font-size: 13px;">(~<span id="wd-momo-vnd">0</span> Điểm)</span>
                 </div>
                 
-                <input type="number" id="momo-amount" class="input-field" placeholder="Số tiền rút (VNĐ) - VD: 5000">
-                <input type="number" id="momo-phone" class="input-field" placeholder="Số điện thoại Momo">
-                <input type="text" id="momo-fullname" class="input-field" placeholder="Họ và Tên (Không dấu)">
+                <input type="number" id="momo-amount" class="input-field" placeholder="Mệnh giá Voucher (VD: 5000)">
+                <input type="number" id="momo-phone" class="input-field" placeholder="SĐT nhận mã qua Zalo/SMS">
+                <input type="text" id="momo-fullname" class="input-field" placeholder="Tên người nhận (Không dấu)">
                 
-                <button id="btn-submit-momo" class="btn-pink" style="margin-top: 10px; background: linear-gradient(135deg, #d946ef 0%, #a21caf 100%);"><i class="fa-solid fa-paper-plane"></i> GỬI LỆNH RÚT</button>
+                <button id="btn-submit-momo" class="btn-pink" style="margin-top: 10px; background: linear-gradient(135deg, #ee4d2d 0%, #ff7337 100%);"><i class="fa-solid fa-gift"></i> NHẬN MÃ SHOPEEFOOD</button>
             </div>
         </div>
-
         <!-- ================= BOTTOM NAVIGATION BAR ================= -->
         <div class="bottom-nav">
             <div class="nav-item active" onclick="switchTab('tab-home')">
@@ -387,8 +390,8 @@
                 <span class="label">Tiện Ích</span>
             </div>
             <div class="nav-item" onclick="switchTab('tab-withdraw')">
-                <i class="fa-solid fa-money-bill-wave"></i>
-                <span class="label">Rút Tiền</span>
+                <i class="fa-solid fa-tags"></i>
+                <span class="label">Đổi Mã</span>
             </div>
         </div>
 
