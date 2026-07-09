@@ -7,6 +7,7 @@ const userId = tg.initDataUnsafe?.user?.id || 0;
 
 let miningInterval;
 let userAdsWatched = 0;   
+let userAdsWatched2 = 0;
 let userLinksCompleted = 0; 
 let dailySpins = 0;         
 const MAX_DAILY_SPINS = 5;  
@@ -90,9 +91,12 @@ async function loadRealData() {
         let freeTickets = data.user.free_tickets || 0;
         dailySpins = data.user.daily_spins || 0;
         let adCount = data.user.ad_count || 0;
+        let adCount2 = data.user.ad_count_2 || 0;
         userAdsWatched = adCount; 
+        userAdsWatched2 = adCount2;
 
         if(document.getElementById("display-ads-watched")) document.getElementById("display-ads-watched").innerText = userAdsWatched;
+        if(document.getElementById("display-ads-watched-2")) document.getElementById("display-ads-watched-2").innerText = userAdsWatched2;
         if(document.getElementById("display-extra-spins")) document.getElementById("display-extra-spins").innerText = extraSpins;
         if(document.getElementById("display-free-tickets")) document.getElementById("display-free-tickets").innerText = freeTickets;
         if(document.getElementById("display-daily-spins")) document.getElementById("display-daily-spins").innerText = `${dailySpins}/5`;
@@ -279,19 +283,20 @@ function switchTab(tabId) {
     if(idx !== -1) document.querySelectorAll('.nav-item')[idx].classList.add('active');
 }
 
-const AdController = window.Adsgram.init({ blockId: "35429" });
+// ================= XỬ LÝ QUẢNG CÁO NGUỒN 1 & NGUỒN 2 =================
+
+const AdController = window.Adsgram.init({ blockId: "37740" });
+const watchAdBtn = document.getElementById("btn-watch-ad");
 
 function showRewardAd() {
     return new Promise((resolve, reject) => {
         try {
             if (window.TelegramAdsController) {
-                let adPromise = window.TelegramAdsController.show(); 
-                
-                if (adPromise && typeof adPromise.then === 'function') {
-                    adPromise.then(resolve).catch(reject);
-                } else {
-                    setTimeout(resolve, 1000); 
-                }
+                window.TelegramAdsController.triggerInterstitialBanner().then((result) => {
+                    resolve(result);
+                }).catch((result) => {
+                    reject(result);
+                });
             } else {
                 reject("RichAds chưa được tải");
             }
@@ -300,7 +305,6 @@ function showRewardAd() {
         }
     });
 }
-const watchAdBtn = document.getElementById("btn-watch-ad");
 
 function startAdCooldown(btn, seconds = 20, defaultText = "") {
     let timeLeft = seconds;
@@ -332,7 +336,7 @@ if (watchAdBtn) {
         watchAdBtn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         watchAdBtn.disabled = true;
 
-        showRewardAd().then(async (result) => {
+        AdController.show().then(async (result) => {
             watchAdBtn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG NHẬN THƯỞNG...";
 
             try {
@@ -340,7 +344,7 @@ if (watchAdBtn) {
                 const res = await fetch(adUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
-                    body: JSON.stringify({ initData: tg.initData }) 
+                    body: JSON.stringify({ initData: tg.initData, source: 1 }) 
                 });
                 const data = await res.json();
 
@@ -368,14 +372,14 @@ if (watchAdBtn) {
                 }
             } catch (err) {
                 console.error("Lỗi API Ads:", err);
-                showToast("❌ Có lỗi mạng khi cộng thưởng, bạn kiểm tra lại đường truyền nhé!");
+                showToast("❌ Có lỗi mạng khi cộng thưởng!", "error");
             }
 
-            const btnText = `<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO (<span id="display-ads-watched">${userAdsWatched}</span>/30)`;
+            const btnText = `<i class='fa-solid fa-tv'></i> NGUỒN 1 - ADSGRAM (<span id="display-ads-watched">${userAdsWatched}</span>/30)`;
             startAdCooldown(watchAdBtn, 20, btnText);
 
         }).catch((error) => {
-            const btnText = `<i class='fa-solid fa-tv'></i> XEM QUẢNG CÁO (<span id="display-ads-watched">${userAdsWatched}</span>/30)`;
+            const btnText = `<i class='fa-solid fa-tv'></i> NGUỒN 1 - ADSGRAM (<span id="display-ads-watched">${userAdsWatched}</span>/30)`;
             const errString = (JSON.stringify(error) + String(error)).toLowerCase();
 
             if (errString.includes('no ad') || errString.includes('not filled') || errString.includes('unavailable') || errString.includes('load_error')) {
@@ -385,6 +389,70 @@ if (watchAdBtn) {
                 showToast("❌ Bạn tắt quảng cáo sớm nên chưa được nhận thưởng đâu nha!", "error");
                 startAdCooldown(watchAdBtn, 20, btnText); 
             }
+        });
+    });
+}
+
+const watchAdBtn2 = document.getElementById("btn-watch-ad-2");
+if (watchAdBtn2) {
+    watchAdBtn2.addEventListener("click", () => {
+        if (userAdsWatched2 >= 30) {
+            return showToast("⚠️ Bạn đã đạt giới hạn 30/30 lượt xem Nguồn 2 hôm nay!", "error");
+        }
+
+        watchAdBtn2.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
+        watchAdBtn2.disabled = true;
+
+        showRewardAd().then(async (result) => {
+            watchAdBtn2.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG NHẬN THƯỞNG...";
+
+            try {
+                const adUrl = `${BASE_URL}/api/watch_ad`; 
+                const res = await fetch(adUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
+                    body: JSON.stringify({ initData: tg.initData, source: 2 }) 
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    showToast("❌ " + data.error, "error");
+                } else if (data.success) {
+                    currentXu = data.new_xu;
+                    document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
+                    document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
+
+                    const levelText = document.getElementById("user-level").innerText;
+                    if (!levelText.includes("20") && !levelText.includes("MAX")) {
+                        document.getElementById("user-exp").innerText = `${data.new_exp}/${data.exp_required}`;
+                    }
+                    
+                    userAdsWatched2 = data.ad_count; 
+                    if(document.getElementById("display-ads-watched-2")) document.getElementById("display-ads-watched-2").innerText = userAdsWatched2;
+                    
+                    let freeTickets = data.free_tickets || 0;
+                    if(document.getElementById("display-free-tickets")) document.getElementById("display-free-tickets").innerText = freeTickets;
+                    
+                    showToast(`🎉 Nguồn 2: Bạn nhận đc ${data.reward_xu} Xu và ${data.reward_exp} EXP.`);
+                }
+            } catch (err) {
+                console.error("Lỗi API Ads Nguồn 2:", err);
+                showToast("❌ Có lỗi mạng khi cộng thưởng Nguồn 2!", "error");
+            }
+
+            const btnText = `<i class='fa-solid fa-video'></i> NGUỒN 2 - ADSNET (<span id="display-ads-watched-2">${userAdsWatched2}</span>/30)`;
+            startAdCooldown(watchAdBtn2, 20, btnText);
+
+        }).catch((error) => {
+            const btnText = `<i class='fa-solid fa-video'></i> NGUỒN 2 - ADSNET (<span id="display-ads-watched-2">${userAdsWatched2}</span>/30)`;
+            const errString = (JSON.stringify(error) + String(error)).toLowerCase();
+
+            if (errString.includes('chưa được tải')) {
+                showToast("⚠️ SDK RichAds chưa tải xong. Ông đợi xíu rồi bấm lại nhé!", "error");
+            } else {
+                showToast("❌ Không có quảng cáo hoặc bạn tắt sớm rùi!", "error");
+            }
+            startAdCooldown(watchAdBtn2, 20, btnText); 
         });
     });
 }
@@ -399,7 +467,7 @@ if (btnActivate) {
         btnActivate.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnActivate.disabled = true;
 
-        showRewardAd().then(async (result) => {
+        AdController.show().then(async (result) => {
             btnActivate.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG KHỞI ĐỘNG MÁY...";
             
             try {
@@ -564,7 +632,7 @@ function renderLeaderboard(leaderboardData) {
     leaderboardList.innerHTML = "";
 
     leaderboardData.forEach((user) => {
-        let rankIcon = user.rank === 1 ? "🥇" : user.rank === 2 ? "🥈" : user.rank === 3 ? "🥉" : `<span style='display: inline-block; width: 20px; text-align: left; color: var(--text-muted); font-weight: bold;'>${user.rank}.</span>`;
+        let rankIcon = user.rank === 1 ? "🥇" : user.rank === 2 ? "🥈" : user.rank === 3 ? "🥉" : `<span style='display: inline-block; width: 22px; text-align: center; color: var(--text-muted); font-weight: bold;'>${user.rank}.</span>`;
         let displayName = user.name;
 
         const li = document.createElement("li");
@@ -573,18 +641,19 @@ function renderLeaderboard(leaderboardData) {
             li.style.paddingBottom = "0";
         }
 
+        // Fix CSS Grid: Tỉ lệ chuẩn 50% - 15% - 35% và ép không tràn text
         li.style.display = "grid";
-        li.style.gridTemplateColumns = "45% 20% 35%";
+        li.style.gridTemplateColumns = "50% 15% 35%";
         li.style.alignItems = "center";
-        li.style.gap = "5px";
+        li.style.gap = "8px";
 
         li.innerHTML = `
-            <div style="display: flex; align-items: center; overflow: hidden; white-space: nowrap;">
-                <span style="margin-right: 6px; font-size: 15px;">${rankIcon}</span> 
-                <span style="font-weight: 600; color: var(--text-main); font-size: 13px; text-overflow: ellipsis; overflow: hidden;">${displayName}</span>
+            <div style="display: flex; align-items: center; min-width: 0;">
+                <span style="margin-right: 8px; font-size: 16px; flex-shrink: 0;">${rankIcon}</span>
+                <span style="font-weight: 600; color: var(--text-main); font-size: 14px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; display: block; width: 100%;">${displayName}</span>
             </div>
             <div style="text-align: center; color: var(--color-blue); font-size: 13px; font-weight: 600;">Lv ${user.level}</div>
-            <div style="text-align: right; color: var(--color-gold); font-size: 13px; font-weight: 700;">${user.xu.toLocaleString()} Xu</div>
+            <div style="text-align: right; color: var(--color-gold); font-size: 14px; font-weight: 700;">${user.xu.toLocaleString()} Xu</div>
         `;
         leaderboardList.appendChild(li);
     });
@@ -669,7 +738,7 @@ if (btnDoAttendance) {
         btnDoAttendance.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnDoAttendance.disabled = true;
 
-        showRewardAd().then(async (result) => {
+        AdController.show().then(async (result) => {
             btnDoAttendance.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG ĐIỂM DANH...";
             
             try {
@@ -828,11 +897,11 @@ if (btnSubmitBank) {
         const stk = document.getElementById("bank-stk").value.trim();
         const fullName = document.getElementById("bank-fullname").value.trim();
 
-       if (!amount || amount < 2000 || amount > 10000) {
-            return showToast("Mệnh giá Voucher phải từ 2,000 đến 10,000 Điểm!");
+        if (!amount || amount < 2000 || amount > 10000) {
+            return showToast("Số tiền rút phải từ 2,000 đến 10,000 VNĐ!");
         }
         if (!bankName || !stk || !fullName) {
-            return showToast("Vui lòng điền đủ thông tin để nhận mã Shopee!");
+            return showToast("Vui lòng điền đầy đủ thông tin Ngân hàng!");
         }
 
         const formatInfo = `${bankName} - ${stk} - ${fullName.toUpperCase()}`;
@@ -876,7 +945,7 @@ if (btnSubmitBank) {
             showToast("❌ Lỗi kết nối mạng, vui lòng thử lại sau!");
         }
 
-        btnSubmitBank.innerHTML = "<i class='fa-solid fa-gift'></i> NHẬN MÃ SHOPEE";
+        btnSubmitBank.innerHTML = "<i class='fa-solid fa-paper-plane'></i> GỬI LỆNH RÚT";
         btnSubmitBank.disabled = false;
     });
 }
@@ -889,10 +958,10 @@ if (btnSubmitMomo) {
         const fullName = document.getElementById("momo-fullname").value.trim();
 
         if (!amount || amount < 2000 || amount > 10000) {
-            return showToast("Mệnh giá Voucher phải từ 2,000 đến 10,000 Điểm!");
+            return showToast("Số tiền rút phải từ 2,000 đến 10,000 VNĐ!");
         }
         if (!phone || !fullName) {
-            return showToast("Vui lòng điền đủ thông tin để nhận mã ShopeeFood!");
+            return showToast("Vui lòng điền đầy đủ số điện thoại và tên!");
         }
 
         const formatInfo = `${phone} - ${fullName.toUpperCase()}`;
@@ -923,7 +992,7 @@ if (btnSubmitMomo) {
                 document.getElementById("xu-balance").innerText = currentXu.toLocaleString();
                 document.getElementById("vnd-balance").innerText = (currentXu / 100).toLocaleString();
                 
-                showToast("✅ Đã gửi yêu cầu đổi mã ShopeeFood! Quản trị viên sẽ gửi mã qua tin nhắn bot.");
+                showToast("✅ Lệnh rút đã được gửi! Admin đang xem xét duyệt, bạn chú ý check tin nhắn bot nhé.");
                 
                 wdFormMomo.style.display = "none";
                 wdMethodContainer.style.display = "block";
@@ -935,7 +1004,7 @@ if (btnSubmitMomo) {
             showToast("❌ Lỗi kết nối mạng, vui lòng thử lại sau!");
         }
 
-        btnSubmitMomo.innerHTML = "<i class='fa-solid fa-gift'></i> NHẬN MÃ SHOPEEFOOD";
+        btnSubmitMomo.innerHTML = "<i class='fa-solid fa-paper-plane'></i> GỬI LỆNH RÚT";
         btnSubmitMomo.disabled = false;
     });
 }
@@ -994,12 +1063,14 @@ document.addEventListener('visibilitychange', () => {
 });
 
 setTimeout(() => {
-    const watchAdBtn = document.getElementById("btn-watch-ad");
-    if (watchAdBtn && !document.getElementById("btn-refresh-tasks")) {
+    const taskListContainer = document.getElementById("task-list-container");
+    
+    if (taskListContainer && !document.getElementById("btn-refresh-tasks")) {
         const refreshBtn = document.createElement("button");
         refreshBtn.id = "btn-refresh-tasks";
         refreshBtn.className = "btn-mint"; 
-        refreshBtn.style.marginTop = "10px";
+        refreshBtn.style.marginTop = "25px";
+        refreshBtn.style.marginBottom = "15px"; 
         refreshBtn.innerHTML = "<i class='fa-solid fa-rotate'></i> LÀM MỚI TRẠNG THÁI LINK";
         
         refreshBtn.onclick = () => {
@@ -1010,7 +1081,7 @@ setTimeout(() => {
                 refreshBtn.style.opacity = "1";
             });
         };
-        watchAdBtn.parentNode.insertBefore(refreshBtn, watchAdBtn.nextSibling);
+        taskListContainer.parentNode.insertBefore(refreshBtn, taskListContainer.nextSibling);
     }
 }, 1000);
 
@@ -1027,7 +1098,7 @@ if (btnUpgrade) {
         btnUpgrade.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnUpgrade.disabled = true;
 
-        showRewardAd().then(async (result) => {
+        AdController.show().then(async (result) => {
             btnUpgrade.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG NÂNG CẤP...";
 
             try {
@@ -1067,14 +1138,16 @@ if (btnUpgrade) {
 
         }).catch((error) => {
             const errString = (JSON.stringify(error) + String(error)).toLowerCase();
+            const nextLvl = document.getElementById("next-level-display") ? document.getElementById("next-level-display").innerText : "";
+            const btnText = `<i class="fa-solid fa-level-up-alt fa-bounce"></i> NÂNG CẤP LÊN LV <span id="next-level-display">${nextLvl}</span>`;
+
             if (errString.includes('no ad') || errString.includes('not filled') || errString.includes('unavailable') || errString.includes('load_error')) {
                 showToast("⚠️ Hiện tại kho quảng cáo đang tạm hết. Vui lòng thử nhập mã lại sau 1 lúc nữa!", "error");
-                startAdCooldown(btnUpgrade, 20, `<i class="fa-solid fa-level-up-alt fa-bounce"></i> NÂNG CẤP LÊN LV <span id="next-level-display">${nextLvl}</span>`);
+                startAdCooldown(btnUpgrade, 20, btnText);
             } else {
-            showToast("⚠️ Hiện đang hết video quảng cáo vui lòng thử lại sau.", "error");
-            const nextLvl = document.getElementById("next-level-display").innerText;
-            btnUpgrade.innerHTML = `<i class="fa-solid fa-level-up-alt fa-bounce"></i> NÂNG CẤP LÊN LV <span id="next-level-display">${nextLvl}</span>`;
-            btnUpgrade.disabled = false;
+                showToast("⚠️ Hiện đang hết video quảng cáo vui lòng thử lại sau.", "error");
+                btnUpgrade.innerHTML = btnText;
+                btnUpgrade.disabled = false;
             }
         });
     });
@@ -1087,7 +1160,7 @@ if (btnClaimWeekly) {
         btnClaimWeekly.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnClaimWeekly.disabled = true;
 
-        showRewardAd().then(async (result) => {
+        AdController.show().then(async (result) => {
             btnClaimWeekly.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG MỞ RƯƠNG...";
 
             try {
@@ -1171,7 +1244,7 @@ if (btnSubmitGiftcode) {
         btnSubmitGiftcode.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG TẢI QUẢNG CÁO...";
         btnSubmitGiftcode.disabled = true;
 
-        showRewardAd().then(async (result) => {
+        AdController.show().then(async (result) => {
             btnSubmitGiftcode.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> ĐANG KIỂM TRA MÃ...";
 
             try {
